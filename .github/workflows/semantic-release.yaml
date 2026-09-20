@@ -1,0 +1,23 @@
+---
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  release:
+    name: Release
+    uses: bruzit/github-actions-and-workflows/.github/workflows/semantic-release.yaml@v0
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    with:
+      GH_SEM_REL_APP_ID: ${{ vars.GH_SEM_REL_APP_ID }}
+    secrets:
+      GH_SEM_REL_APP_PEM_FILE: ${{ secrets.GH_SEM_REL_APP_PEM_FILE }}
