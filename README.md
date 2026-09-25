@@ -38,13 +38,13 @@ ansible-galaxy collection install -r requirements.yaml
 Hosts are grouped in `inventory.yaml`: every host gets apt, git, gh and terraform; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts get nothing more (no systemd, so no snap or flatpak). All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
 
 ```bash
-ansible-playbook -K -i inventory.yaml -l <inventory-hostname> playbook.yaml
+ansible-playbook -K -l <inventory-hostname> playbook.yaml
 ```
 
 Without a TTY, point Ansible at a password file instead (there is no environment variable for the password itself):
 
 ```bash
-ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -i inventory.yaml -l <inventory-hostname> playbook.yaml
+ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-hostname> playbook.yaml
 ```
 
 `inventory.yaml` connects locally, so `ansible.builtin.reboot` refuses to run — keep `reboot_when_needed` false and reboot by hand after kernel upgrades.
