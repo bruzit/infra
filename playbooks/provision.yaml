@@ -1,0 +1,9 @@
+---
+- hosts: all
+  roles:
+    - role: bruzit.ansible.apt
+    - role: bruzit.ansible.snap
+    - role: bruzit.ansible.obsidian
+    - role: bruzit.ansible.git
+    - role: bruzit.ansible.terraform
+    - role: bruzit.ansible.widelands
