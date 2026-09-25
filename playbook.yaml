@@ -1,0 +1,15 @@
+---
+- name: Provision common tooling
+  hosts: all
+  roles:
+    - role: bruzit.ansible.apt
+    - role: bruzit.ansible.git
+    - role: bruzit.ansible.gh
+    - role: bruzit.ansible.terraform
+
+- name: Provision desktop applications
+  hosts: workstations
+  roles:
+    - role: bruzit.ansible.snap
+    - role: bruzit.ansible.obsidian
+    - role: bruzit.ansible.widelands

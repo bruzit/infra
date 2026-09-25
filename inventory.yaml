@@ -1,5 +1,11 @@
 ---
 all:
-  hosts:
-    localhost:
-      ansible_connection: local
+  children:
+    workstations:
+      hosts:
+        localhost:
+          ansible_connection: local
+    wsl:
+      hosts:
+        wsl-beta:
+          ansible_connection: local
