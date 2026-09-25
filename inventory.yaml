@@ -1,11 +1,16 @@
 ---
 all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   children:
     workstations:
       hosts:
         localhost:
           ansible_connection: local
     wsl:
+      vars:
+        # Ubuntu >= 25.10 defaults to sudo-rs, whose prompt format breaks Ansible become detection
+        ansible_become_exe: /usr/bin/sudo.ws
       hosts:
         wsl-beta:
           ansible_connection: local
