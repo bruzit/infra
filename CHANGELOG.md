@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0](https://github.com/bruzit/infra/compare/v0.1.0...v0.2.0) (2026-09-26)
+
+### Features
+
+* add claude role to common tooling ([691ceac](https://github.com/bruzit/infra/commit/691ceac4091ff86b8efc49d4cef91325b6ede260))
+
 ## [0.1.0](https://github.com/bruzit/infra/compare/v0.0.0...v0.1.0) (2026-09-25)
 
 ### Features
