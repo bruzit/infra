@@ -11,4 +11,3 @@ plugins:
   - - "@semantic-release/git"
     - assets:
         - CHANGELOG.md
-  - semantic-release-major-tag
