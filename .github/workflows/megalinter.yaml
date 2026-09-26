@@ -1,0 +1,13 @@
+---
+name: MegaLinter
+
+on:
+  pull_request:
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    uses: bruzit/github-actions-and-workflows/.github/workflows/megalinter.yaml@v0
+    permissions:
+      contents: write
+      pull-requests: write

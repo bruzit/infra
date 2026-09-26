@@ -1,0 +1,10 @@
+---
+ENABLE:
+  - ACTION
+  - ANSIBLE
+  - MARKDOWN
+  - YAML
+ANSIBLE_ANSIBLE_LINT_PRE_COMMANDS:
+  - command: ansible-galaxy collection install -r requirements.yaml
+    cwd: workspace
+    continue_if_failed: false
