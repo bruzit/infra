@@ -4,6 +4,7 @@
   roles:
     - role: bruzit.ansible.apt
     - role: bruzit.ansible.git
+    - role: bruzit.ansible.claude
     - role: bruzit.ansible.gh
     - role: bruzit.ansible.terraform
 
