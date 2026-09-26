@@ -35,7 +35,7 @@ Install collections (`bruzit.ansible` requires ansible-core 2.17 or newer):
 ansible-galaxy collection install -r requirements.yaml
 ```
 
-Hosts are grouped in `inventory.yaml`: every host gets apt, git, gh and terraform; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts get nothing more (no systemd, so no snap or flatpak). All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
+Hosts are grouped in `inventory.yaml`: every host gets apt, git, claude, gh and terraform; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts get nothing more (no systemd, so no snap or flatpak). All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
 
 ```bash
 ansible-playbook -K -l <inventory-hostname> playbook.yaml
