@@ -10,5 +10,5 @@ plugins:
     - changelogTitle: '# Changelog'
   - - "@semantic-release/git"
     - assets:
-      - CHANGELOG.md
+        - CHANGELOG.md
   - semantic-release-major-tag
