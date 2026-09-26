@@ -14,22 +14,22 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 
 ## Provisioning
 
-Fresh-system prerequisites and Ansible (user-level via pipx; PEP 668 blocks system-wide pip installs):
+Fresh-system prerequisites and Ansible (`bruzit.ansible` requires ansible-core 2.20 or newer, which apt provides on Ubuntu 26.04 and newer; on 24.04 use `pipx install ansible` instead):
 
 ```bash
-sudo apt install -y git python3 python3-apt pipx
-pipx install ansible
-pipx ensurepath
+sudo apt install -y git ansible
 ```
 
-Reopen the shell so the `pipx ensurepath` PATH change takes effect, then clone this repo:
+Clone this repo (HTTPS, a fresh machine has no SSH key or GitHub CLI yet):
 
 ```bash
-git clone git@github.com:bruzit/infra.git
+git clone https://github.com/bruzit/infra.git
 cd infra
 ```
 
-Install collections (`bruzit.ansible` requires ansible-core 2.17 or newer):
+Add the machine to `inventory.yaml` under `workstations` or `wsl` if it is not there yet.
+
+Install collections:
 
 ```bash
 ansible-galaxy collection install -r requirements.yaml
