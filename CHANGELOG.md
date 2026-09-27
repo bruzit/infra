@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0](https://github.com/bruzit/infra/compare/v0.2.0...v0.3.0) (2026-09-27)
+
+### Features
+
+* add direnv role to common tooling ([841d033](https://github.com/bruzit/infra/commit/841d033085f274fcbd4c37e6e3ff85b3c7a29081))
+
 ## [0.2.0](https://github.com/bruzit/infra/compare/v0.1.0...v0.2.0) (2026-09-26)
 
 ### Features
