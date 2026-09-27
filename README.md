@@ -4,13 +4,13 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 
 ## Blueprints
 
-| Blueprint | Scope | Status |
-|---|---|---|
-| `PC` | Workstations, laptops, gaming desktop, peripherals | Planned |
-| `home-net` | Routers, APs, switches, UPS, cabling | Planned |
-| `home-lab` | Bare-metal servers, storage, Kubernetes | Planned |
-| `home-services` | Self-hosted services and their backups | Planned |
-| `home-web` | Edge static hosting, CDN, domains | Planned |
+| Blueprint       | Scope                                              | Status  |
+|-----------------|----------------------------------------------------|---------|
+| `PC`            | Workstations, laptops, gaming desktop, peripherals | Planned |
+| `home-net`      | Routers, APs, switches, UPS, cabling               | Planned |
+| `home-lab`      | Bare-metal servers, storage, Kubernetes            | Planned |
+| `home-services` | Self-hosted services and their backups             | Planned |
+| `home-web`      | Edge static hosting, CDN, domains                  | Planned |
 
 ## Provisioning
 
