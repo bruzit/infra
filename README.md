@@ -49,7 +49,7 @@ Without a TTY, point Ansible at a password file instead (there is no environment
 ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-hostname> playbook.yaml
 ```
 
-`inventory.yaml` connects locally, so `ansible.builtin.reboot` refuses to run — keep `reboot_when_needed` false and reboot by hand after kernel upgrades.
+`inventory.yaml` connects locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
 
 ## Copyright and Licensing
 
