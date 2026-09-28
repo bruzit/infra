@@ -35,7 +35,9 @@ Install collections:
 ansible-galaxy collection install -r requirements.yaml
 ```
 
-Hosts are grouped in `inventory.yaml`: every host gets apt, git, claude, direnv, gh and terraform; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts get nothing more (no systemd, so no snap or flatpak). All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
+Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users` and `git` roles.
+
+Hosts are grouped in `inventory.yaml`: every host gets apt, users, git, claude, direnv, gh and terraform; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts get nothing more (no systemd, so no snap or flatpak). All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
 
 ```bash
 ansible-playbook -K -l <inventory-hostname> playbook.yaml
