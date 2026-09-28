@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0](https://github.com/bruzit/infra/compare/v0.4.0...v0.5.0) (2026-09-28)
+
+### Features
+
+* add jq, yq and pwgen roles to common tooling ([8dec791](https://github.com/bruzit/infra/commit/8dec79121789b149736f41c20b05db16d39ad1f4))
+
 ## [0.4.0](https://github.com/bruzit/infra/compare/v0.3.0...v0.4.0) (2026-09-28)
 
 ### Features
