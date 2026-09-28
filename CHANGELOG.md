@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0](https://github.com/bruzit/infra/compare/v0.3.0...v0.4.0) (2026-09-28)
+
+### Features
+
+* manage accounts and per-user git configuration ([7a5d851](https://github.com/bruzit/infra/commit/7a5d851ee58cf20ad82bb9b58e1926f6209d4aeb))
+
 ## [0.3.0](https://github.com/bruzit/infra/compare/v0.2.0...v0.3.0) (2026-09-27)
 
 ### Features
