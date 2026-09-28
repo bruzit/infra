@@ -11,6 +11,9 @@
     - role: bruzit.ansible.direnv
     - role: bruzit.ansible.gh
     - role: bruzit.ansible.terraform
+    - role: bruzit.ansible.jq
+    - role: bruzit.ansible.pwgen
+    - role: bruzit.ansible.yq
 
 - name: Provision desktop applications
   hosts: workstations
