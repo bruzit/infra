@@ -9,6 +9,7 @@
       git_users: "{{ accounts }}"
     - role: bruzit.ansible.claude
     - role: bruzit.ansible.direnv
+    - role: bruzit.ansible.starship
     - role: bruzit.ansible.gh
     - role: bruzit.ansible.terraform
     - role: bruzit.ansible.jq
