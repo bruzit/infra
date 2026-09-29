@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0](https://github.com/bruzit/infra/compare/v0.5.0...v0.6.0) (2026-09-29)
+
+### Features
+
+* add starship role to common tooling ([9a22bd3](https://github.com/bruzit/infra/commit/9a22bd3f8f6efad0efc0c974791a002bd453918a))
+
 ## [0.5.0](https://github.com/bruzit/infra/compare/v0.4.0...v0.5.0) (2026-09-28)
 
 ### Features
