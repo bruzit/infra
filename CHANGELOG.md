@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.0](https://github.com/bruzit/infra/compare/v0.6.0...v0.7.0) (2026-10-03)
+
+### Features
+
+* provision docker and the gh credential helper for every account ([c070e2d](https://github.com/bruzit/infra/commit/c070e2db1caf8f1745b5be54b0a3756766b19ddb))
+
 ## [0.6.0](https://github.com/bruzit/infra/compare/v0.5.0...v0.6.0) (2026-09-29)
 
 ### Features
