@@ -11,7 +11,10 @@
     - role: bruzit.ansible.direnv
     - role: bruzit.ansible.starship
     - role: bruzit.ansible.gh
+      gh_users: "{{ accounts }}"
     - role: bruzit.ansible.terraform
+    - role: bruzit.ansible.docker
+      docker_users: "{{ accounts | map(attribute='name') }}"
     - role: bruzit.ansible.jq
     - role: bruzit.ansible.pwgen
     - role: bruzit.ansible.yq
