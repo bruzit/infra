@@ -25,3 +25,9 @@
     - role: bruzit.ansible.snap
     - role: bruzit.ansible.obsidian
     - role: bruzit.ansible.widelands
+
+- name: Provision WSL
+  hosts: wsl
+  roles:
+    - role: bruzit.ansible.wsl
+      wsl_default_user: "{{ accounts[0].name }}"
