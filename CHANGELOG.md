@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0](https://github.com/bruzit/infra/compare/v0.7.0...v0.8.0) (2026-10-03)
+
+### Features
+
+* provision wsl hosts with the wsl role ([f5de768](https://github.com/bruzit/infra/commit/f5de768eae2b46ad80559d0b55b53aa1d9e8976f))
+
 ## [0.7.0](https://github.com/bruzit/infra/compare/v0.6.0...v0.7.0) (2026-10-03)
 
 ### Features
