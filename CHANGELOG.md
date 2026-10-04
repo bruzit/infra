@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.0](https://github.com/bruzit/infra/compare/v0.9.0...v0.10.0) (2026-10-04)
+
+### Features
+
+* clone the bruzit repositories for mb ([5707e26](https://github.com/bruzit/infra/commit/5707e2648dfca9b78f19fa9aeac8d6c644c59d98))
+
 ## [0.9.0](https://github.com/bruzit/infra/compare/v0.8.0...v0.9.0) (2026-10-03)
 
 ### Features
