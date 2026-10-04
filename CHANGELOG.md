@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.11.0](https://github.com/bruzit/infra/compare/v0.10.0...v0.11.0) (2026-10-04)
+
+### Features
+
+* clone the template repository for mb ([4156438](https://github.com/bruzit/infra/commit/4156438f17950f185db8445c0ef0751c8a4677e2))
+
 ## [0.10.0](https://github.com/bruzit/infra/compare/v0.9.0...v0.10.0) (2026-10-04)
 
 ### Features
