@@ -9,3 +9,4 @@ accounts:
       - bruzit/github-actions-and-workflows
       - bruzit/github-organization-as-code
       - bruzit/infra
+      - bruzit/template
