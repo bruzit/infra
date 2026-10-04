@@ -35,7 +35,7 @@ Install collections:
 ansible-galaxy collection install -r requirements.yaml
 ```
 
-Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles.
+Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
 
 Hosts are grouped in `inventory.yaml`: every host gets apt, users, git, claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen and yq; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
 
