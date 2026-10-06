@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.0](https://github.com/bruzit/infra/compare/v0.12.0...v0.13.0) (2026-10-06)
+
+### Features
+
+* add hetzner test environment ([160784d](https://github.com/bruzit/infra/commit/160784dbc94b512c109372297d5c629e1ffc9711))
+
 ## [0.12.0](https://github.com/bruzit/infra/compare/v0.11.0...v0.12.0) (2026-10-06)
 
 ### Features
