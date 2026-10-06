@@ -23,6 +23,7 @@
     - role: bruzit.ansible.jq
     - role: bruzit.ansible.pwgen
     - role: bruzit.ansible.yq
+    - role: bruzit.ansible.mc
 
 - name: Provision SSH access
   hosts: workstations:media
