@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.0](https://github.com/bruzit/infra/compare/v0.11.0...v0.12.0) (2026-10-06)
+
+### Features
+
+* add media servers and desktops ([aa516e0](https://github.com/bruzit/infra/commit/aa516e01614178e759b41ddc94621878c1cd910a))
+
 ## [0.11.0](https://github.com/bruzit/infra/compare/v0.10.0...v0.11.0) (2026-10-04)
 
 ### Features
