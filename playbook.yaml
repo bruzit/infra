@@ -1,5 +1,5 @@
 ---
-- name: Provision common tooling
+- name: Provision base system
   hosts: all
   roles:
     - role: bruzit.ansible.apt
@@ -7,6 +7,10 @@
       users_accounts: "{{ accounts }}"
     - role: bruzit.ansible.git
       git_users: "{{ accounts }}"
+
+- name: Provision developer tooling
+  hosts: workstations:wsl
+  roles:
     - role: bruzit.ansible.claude
     - role: bruzit.ansible.direnv
     - role: bruzit.ansible.starship
@@ -20,12 +24,26 @@
     - role: bruzit.ansible.pwgen
     - role: bruzit.ansible.yq
 
+- name: Provision SSH access
+  hosts: workstations:media
+  roles:
+    - role: bruzit.ansible.ssh_server
+    - role: bruzit.ansible.fail2ban
+
 - name: Provision desktop applications
   hosts: workstations
   roles:
     - role: bruzit.ansible.snap
     - role: bruzit.ansible.obsidian
     - role: bruzit.ansible.widelands
+    - role: bruzit.ansible.nerd_font
+
+- name: Provision media server
+  hosts: media
+  roles:
+    - role: bruzit.ansible.unattended_upgrades
+      unattended_upgrades_reboot: true
+    - role: bruzit.ansible.kodi
 
 - name: Provision WSL
   hosts: wsl

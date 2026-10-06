@@ -2,15 +2,19 @@
 all:
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    # Ubuntu >= 25.10 defaults to sudo-rs, whose prompt format breaks Ansible become detection
+    ansible_become_exe: "{{ '/usr/bin/sudo.ws' if ansible_facts.distribution_version | default('0') is version('25.10', '>=') else 'sudo' }}"
   children:
     workstations:
       hosts:
-        localhost:
-          ansible_connection: local
+        pc0:
+        pc2:
+        pc4:
+    media:
+      hosts:
+        pc1:
+        pc3:
     wsl:
-      vars:
-        # Ubuntu >= 25.10 defaults to sudo-rs, whose prompt format breaks Ansible become detection
-        ansible_become_exe: /usr/bin/sudo.ws
       hosts:
         wsl-beta:
           ansible_connection: local
