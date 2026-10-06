@@ -12,6 +12,22 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 | `home-services` | Self-hosted services and their backups             | Planned |
 | `home-web`      | Edge static hosting, CDN, domains                  | Planned |
 
+## Hosts
+
+| Group          | Hosts                          | Connection |
+|----------------|--------------------------------|------------|
+| `workstations` | `pc0`, `pc2`, `pc4`            | SSH        |
+| `media`        | `pc3` (lab), `pc1` (household) | SSH        |
+| `wsl`          | `wsl-beta`                     | Local      |
+
+SSH hosts are reached by hostname. Bootstrap each one by running the playbook locally on it, which authorizes the keys from `github.com/bruzina.keys` and installs the SSH server:
+
+```bash
+ansible-playbook -K -c local -l <host> playbook.yaml
+```
+
+Afterwards run it from any controller holding a key listed on `github.com/bruzina.keys`. Ubuntu 25.10 and newer become via `sudo.ws` automatically.
+
 ## Provisioning
 
 Fresh-system prerequisites and Ansible (`bruzit.ansible` requires ansible-core 2.20 or newer, which apt provides on Ubuntu 26.04 and newer; on 24.04 use `pipx install ansible` instead):
@@ -27,7 +43,7 @@ git clone https://github.com/bruzit/infra.git
 cd infra
 ```
 
-Add the machine to `inventory.yaml` under `workstations` or `wsl` if it is not there yet.
+Add the machine to `inventory.yaml` under `workstations`, `media` or `wsl` if it is not there yet.
 
 Install collections:
 
@@ -37,7 +53,7 @@ ansible-galaxy collection install -r requirements.yaml
 
 Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
 
-Hosts are grouped in `inventory.yaml`: every host gets apt, users, git, claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen and yq; `workstations` additionally get snap, obsidian and widelands; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. All hosts connect locally, so always limit the run to the current machine with `-l`; `-K` prompts for the sudo password:
+Hosts are grouped in `inventory.yaml`: every host gets apt, users and git; `workstations` and `wsl` get claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen and yq; `workstations` and `media` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands and nerd_font (JetBrainsMono, system-wide Konsole default); `media` additionally get unattended_upgrades with automatic reboots and kodi; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
 
 ```bash
 ansible-playbook -K -l <inventory-hostname> playbook.yaml
@@ -49,7 +65,7 @@ Without a TTY, point Ansible at a password file instead (there is no environment
 ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-hostname> playbook.yaml
 ```
 
-`inventory.yaml` connects locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
+`wsl` hosts connect locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
 
 ## Copyright and Licensing
 

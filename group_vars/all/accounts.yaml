@@ -3,6 +3,8 @@ accounts:
   - name: mb
     full_name: Martin Bružina
     email: martin@bruzina.cz
+    github: bruzina
+    admin: true
     repositories:
       - bruzit/.github
       - bruzit/ansible-collection
