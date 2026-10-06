@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.14.0](https://github.com/bruzit/infra/compare/v0.13.0...v0.14.0) (2026-10-06)
+
+### Features
+
+* add mc to developer tooling ([7072de6](https://github.com/bruzit/infra/commit/7072de6df22a644d6f69298ec5ae69b3bf986266))
+
 ## [0.13.0](https://github.com/bruzit/infra/compare/v0.12.0...v0.13.0) (2026-10-06)
 
 ### Features
