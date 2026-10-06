@@ -1,0 +1,95 @@
+---
+name: Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Terraform action.
+        type: choice
+        options:
+          - apply
+          - destroy
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TF_WORKSPACE: test
+  TF_IN_AUTOMATION: true
+  TF_INPUT: false
+  # Addresses are private
+  MASK_IPS: 's/\b[1-9][0-9]{0,2}(\.[0-9]{1,3}){3}\b/<ipv4>/g; s/\b[0-9a-f]{1,4}(:[0-9a-f]{0,4}){2,7}(\/[0-9]+)?/<ipv6>/gi'
+
+jobs:
+  plan:
+    name: Plan
+    environment: test-plan
+    runs-on: ubuntu-slim
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_BUCKET: ${{ vars.AWS_TF_BUCKET }}
+      AWS_ENDPOINT_URL_S3: ${{ vars.AWS_ENDPOINT_URL_S3 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - name: Terraform init
+        run: terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+      - name: Terraform plan
+        env:
+          ACTION: ${{ inputs.action }}
+        run: |
+          args=(plan -lock=false -no-color)
+          if [[ "$ACTION" == destroy ]]; then
+            args+=(-destroy)
+          fi
+          terraform -chdir=terraform "${args[@]}" 2>&1 | sed -E "$MASK_IPS" | tee "$RUNNER_TEMP/plan.txt"
+          {
+            echo "## Terraform plan ($TF_WORKSPACE, $ACTION)"
+            grep -m1 -E '^(Plan:|No changes\.)' "$RUNNER_TEMP/plan.txt" || true
+            echo '```text'
+            cat "$RUNNER_TEMP/plan.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: Apply
+    needs: plan
+    environment: test
+    runs-on: ubuntu-slim
+    concurrency:
+      group: ${{ github.workflow }}-test
+      cancel-in-progress: false
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_BUCKET: ${{ vars.AWS_TF_BUCKET }}
+      AWS_ENDPOINT_URL_S3: ${{ vars.AWS_ENDPOINT_URL_S3 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - name: Terraform init
+        run: terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+      - name: Terraform ${{ inputs.action }}
+        env:
+          ACTION: ${{ inputs.action }}
+        run: terraform -chdir=terraform "$ACTION" -auto-approve -no-color 2>&1 | sed -E "$MASK_IPS"

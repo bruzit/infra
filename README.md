@@ -67,6 +67,34 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-ho
 
 `wsl` hosts connect locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
 
+## Cloud
+
+`terraform/` creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
+cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. State lives in the R2 bucket `bruzit-terraform-hetzner`, one Terraform workspace per environment. Addresses are private: outputs are sensitive and the workflow masks IP addresses.
+
+Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.test.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
+
+Bootstrap the workspace once, since the read-only R2 token cannot create it:
+
+```bash
+TF_MODE=apply direnv exec . terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+```
+
+Plan, apply and destroy locally:
+
+```bash
+terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+terraform -chdir=terraform plan -lock=false
+TF_MODE=apply direnv exec . terraform -chdir=terraform apply
+TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
+```
+
+SSH in by `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
+
+In CI, run the manual `Terraform` workflow with `action` `apply` or `destroy`: job `Plan` plans read-only in the `test-plan` environment and writes the masked plan to the job summary; job `Apply` waits for approval of the `test` environment, then plans again and applies or destroys. Destroy promptly after testing, the server is billed hourly.
+
+Test by `terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test`, with mocked providers; pull requests run it in the `Terraform Test` workflow.
+
 ## Copyright and Licensing
 
 [MIT License](LICENSE)  
