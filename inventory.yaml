@@ -18,3 +18,9 @@ all:
       hosts:
         wsl-beta:
           ansible_connection: local
+    # Hosts come from the hcloud.yaml inventory
+    cloud:
+      vars:
+        ansible_user: mb
+        # Recreated servers get fresh host keys
+        ansible_ssh_common_args: -o StrictHostKeyChecking=accept-new

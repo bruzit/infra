@@ -26,7 +26,7 @@
     - role: bruzit.ansible.mc
 
 - name: Provision SSH access
-  hosts: workstations:media
+  hosts: workstations:media:cloud
   roles:
     - role: bruzit.ansible.ssh_server
     - role: bruzit.ansible.fail2ban
@@ -39,11 +39,15 @@
     - role: bruzit.ansible.widelands
     - role: bruzit.ansible.nerd_font
 
-- name: Provision media server
-  hosts: media
+- name: Provision unattended upgrades
+  hosts: media:cloud
   roles:
     - role: bruzit.ansible.unattended_upgrades
       unattended_upgrades_reboot: true
+
+- name: Provision media server
+  hosts: media
+  roles:
     - role: bruzit.ansible.kodi
 
 - name: Provision WSL

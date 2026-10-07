@@ -45,6 +45,7 @@ resource "hcloud_server" "cloud0" {
   image        = "ubuntu-26.04"
   ssh_keys     = [for key in hcloud_ssh_key.github : key.id]
   firewall_ids = [hcloud_firewall.cloud0.id]
+  labels       = { role = "cloud", env = terraform.workspace }
 
   user_data = "#cloud-config\n${yamlencode({
     disable_root   = true
