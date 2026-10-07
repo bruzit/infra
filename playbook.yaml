@@ -38,6 +38,7 @@
     - role: bruzit.ansible.obsidian
     - role: bruzit.ansible.widelands
     - role: bruzit.ansible.nerd_font
+    - role: bruzit.ansible.vscode
 
 - name: Provision unattended upgrades
   hosts: media:cloud
