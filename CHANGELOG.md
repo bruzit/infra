@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.16.0](https://github.com/bruzit/infra/compare/v0.15.1...v0.16.0) (2026-10-07)
+
+### Features
+
+* add vscode to desktops ([88652fc](https://github.com/bruzit/infra/commit/88652fc837b992d436724741c45a88d298085eb3))
+
 ## [0.15.1](https://github.com/bruzit/infra/compare/v0.15.0...v0.15.1) (2026-10-07)
 
 ### Bug Fixes
