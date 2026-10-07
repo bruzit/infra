@@ -5,12 +5,12 @@
     - role: bruzit.ansible.apt
     - role: bruzit.ansible.users
       users_accounts: "{{ accounts }}"
-    - role: bruzit.ansible.git
-      git_users: "{{ accounts }}"
 
 - name: Provision developer tooling
   hosts: workstations:wsl
   roles:
+    - role: bruzit.ansible.git
+      git_users: "{{ accounts }}"
     - role: bruzit.ansible.claude
     - role: bruzit.ansible.direnv
     - role: bruzit.ansible.starship
