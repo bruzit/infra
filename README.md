@@ -14,11 +14,12 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 
 ## Hosts
 
-| Group          | Hosts                          | Connection |
-|----------------|--------------------------------|------------|
-| `workstations` | `pc0`, `pc2`, `pc4`            | SSH        |
-| `media`        | `pc3` (lab), `pc1` (household) | SSH        |
-| `wsl`          | `wsl-beta`                     | Local      |
+| Group          | Hosts                             | Connection |
+|----------------|-----------------------------------|------------|
+| `workstations` | `pc0`, `pc2`, `pc4`               | SSH        |
+| `media`        | `pc3` (lab), `pc1` (household)    | SSH        |
+| `wsl`          | `wsl-beta`                        | Local      |
+| `cloud`        | `cloud0` (Hetzner, `hcloud.yaml`) | SSH        |
 
 SSH hosts are reached by hostname. Bootstrap each one by running the playbook locally on it, which authorizes the keys from `github.com/bruzina.keys` and installs the SSH server:
 
@@ -53,7 +54,7 @@ ansible-galaxy collection install -r requirements.yaml
 
 Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
 
-Hosts are grouped in `inventory.yaml`: every host gets apt, users and git; `workstations` and `wsl` get claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations` and `media` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands and nerd_font (JetBrainsMono, system-wide Konsole default); `media` additionally get unattended_upgrades with automatic reboots and kodi; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
+Hosts are grouped in `inventory.yaml`: every host gets apt, users and git; `workstations` and `wsl` get claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations`, `media` and `cloud` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands and nerd_font (JetBrainsMono, system-wide Konsole default); `media` and `cloud` get unattended_upgrades with automatic reboots; `media` additionally get kodi; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
 
 ```bash
 ansible-playbook -K -l <inventory-hostname> playbook.yaml
@@ -92,6 +93,14 @@ TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
 SSH in by `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
 
 In CI, run the manual `Terraform` workflow with `action` `apply` or `destroy`: job `Plan` plans read-only in the `test-plan` environment and writes the masked plan to the job summary; job `Apply` waits for approval of the `test` environment, then plans again and applies or destroys. Destroy promptly after testing, the server is billed hourly.
+
+Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace) the group `env_<env>`, discovered by the `hetzner.hcloud.hcloud` inventory plugin in `hcloud.yaml` with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l env_<env>` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
+
+```bash
+TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l env_test playbook.yaml
+```
+
+Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; a recycled address with a changed key needs `ssh-keygen -R <address>`.
 
 Test by `terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test`, with mocked providers; pull requests run it in the `Terraform Test` workflow.
 

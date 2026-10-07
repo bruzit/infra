@@ -1,0 +1,8 @@
+---
+plugin: hetzner.hcloud.hcloud
+label_selector: role=cloud
+groups:
+  cloud: true
+keyed_groups:
+  - key: hcloud_labels.env
+    prefix: env

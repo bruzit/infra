@@ -30,6 +30,11 @@ run "server" {
     condition     = yamldecode(trimprefix(hcloud_server.cloud0.user_data, "#cloud-config\n")).users[0].ssh_authorized_keys == ["ssh-ed25519 AAAAone", "ssh-ed25519 AAAAtwo"]
     error_message = "User mb must have every GitHub key."
   }
+
+  assert {
+    condition     = hcloud_server.cloud0.labels == tomap({ role = "cloud", env = terraform.workspace })
+    error_message = "Server must be labeled with role cloud and its workspace for the hcloud inventory groups."
+  }
 }
 
 run "firewall" {
