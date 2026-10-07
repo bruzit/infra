@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.0](https://github.com/bruzit/infra/compare/v0.14.0...v0.15.0) (2026-10-07)
+
+### Features
+
+* converge cloud servers via hcloud inventory ([fba8c3f](https://github.com/bruzit/infra/commit/fba8c3f937e8762d4612b69b3da7504367689ec4))
+
 ## [0.14.0](https://github.com/bruzit/infra/compare/v0.13.0...v0.14.0) (2026-10-06)
 
 ### Features
