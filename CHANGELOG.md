@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.1](https://github.com/bruzit/infra/compare/v0.15.0...v0.15.1) (2026-10-07)
+
+### Bug Fixes
+
+* clone repositories only on controllers ([ff0615a](https://github.com/bruzit/infra/commit/ff0615ab2458b969cfaba8de3cf171093190951a))
+
 ## [0.15.0](https://github.com/bruzit/infra/compare/v0.14.0...v0.15.0) (2026-10-07)
 
 ### Features
