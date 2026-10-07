@@ -27,7 +27,7 @@ SSH hosts are reached by hostname. Bootstrap each one by running the playbook lo
 ansible-playbook -K -c local -l <host> playbook.yaml
 ```
 
-Afterwards run it from any controller holding a key listed on `github.com/bruzina.keys`. Ubuntu 25.10 and newer become via `sudo.ws` automatically.
+Afterwards run it from any [controller](#controller) holding a key listed on `github.com/bruzina.keys`. Ubuntu 25.10 and newer become via `sudo.ws` automatically.
 
 ## Provisioning
 
@@ -37,11 +37,11 @@ Fresh-system prerequisites and Ansible (`bruzit.ansible` requires ansible-core 2
 sudo apt install -y git ansible
 ```
 
-Clone this repo (HTTPS, a fresh machine has no SSH key or GitHub CLI yet):
+Clone this repo into `~/Projects`, where the `git` role skips existing clones (HTTPS, a fresh machine has no SSH key or GitHub CLI yet):
 
 ```bash
-git clone https://github.com/bruzit/infra.git
-cd infra
+git clone https://github.com/bruzit/infra.git ~/Projects/infra
+cd ~/Projects/infra
 ```
 
 Add the machine to `inventory.yaml` under `workstations`, `media` or `wsl` if it is not there yet.
@@ -67,6 +67,32 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-ho
 ```
 
 `wsl` hosts connect locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
+
+## Controller
+
+Every workstation is a controller.
+The first local run installs gh, already set as git credential helper, and direnv.
+Then log in to GitHub and register a new SSH key:
+
+```bash
+gh auth login -h github.com -p https -w -s admin:public_key
+ssh-keygen -t ed25519 -C <user>@<host>
+gh ssh-key add ~/.ssh/id_ed25519.pub -t <host>
+```
+
+Copy the `.env*` files and GitHub App PEMs from an existing controller into the matching checkouts under `~/Projects`, then run `direnv allow` in each.
+
+From an existing controller, re-run the playbook on the other SSH hosts so their authorized keys, taken from `github.com/bruzina.keys`, include the new key:
+
+```bash
+ansible-playbook -K -l <host> playbook.yaml
+```
+
+Verify the new controller from another one:
+
+```bash
+ansible -m ping <host>
+```
 
 ## Cloud
 
