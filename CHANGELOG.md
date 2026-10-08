@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.18.0](https://github.com/bruzit/infra/compare/v0.17.0...v0.18.0) (2026-10-08)
+
+### Features
+
+* generate ssh and signing keys on controllers ([9889b97](https://github.com/bruzit/infra/commit/9889b9796bd81b589c8fc2e645ae335ad107c26c))
+
 ## [0.17.0](https://github.com/bruzit/infra/compare/v0.16.0...v0.17.0) (2026-10-08)
 
 ### Features
