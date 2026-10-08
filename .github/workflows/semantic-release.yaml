@@ -14,10 +14,6 @@ jobs:
     name: Release
     environment: release
     runs-on: ubuntu-slim
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
     steps:
       - name: Semantic Release
         uses: bruzit/github-actions-and-workflows/semantic-release@v0
