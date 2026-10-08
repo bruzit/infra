@@ -88,10 +88,10 @@ From an existing controller, re-run the playbook on the other SSH hosts so their
 ansible-playbook -K -l <host> playbook.yaml
 ```
 
-Verify the new controller from another one:
+Verify the new controller reaches the other hosts:
 
 ```bash
-ansible -m ping <host>
+ansible -m ping workstations:media
 ```
 
 ## Cloud
