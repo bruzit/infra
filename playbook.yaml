@@ -46,6 +46,11 @@
     - role: bruzit.ansible.unattended_upgrades
       unattended_upgrades_reboot: true
 
+- name: Provision unattended upgrades without reboot
+  hosts: workstations
+  roles:
+    - role: bruzit.ansible.unattended_upgrades
+
 - name: Provision media server
   hosts: media
   roles:
