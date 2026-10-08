@@ -54,7 +54,7 @@ ansible-galaxy collection install -r requirements.yaml
 
 Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
 
-Hosts are grouped in `inventory.yaml`: every host gets apt and users; `workstations` and `wsl` get git (identity and repository clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations`, `media` and `cloud` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands, nerd_font (JetBrainsMono, system-wide Konsole default) and vscode; `media` and `cloud` get unattended_upgrades with automatic reboots, `workstations` without automatic reboots; `media` additionally get kodi; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
+Hosts are grouped in `inventory.yaml`: every host gets apt and users; `workstations` and `wsl` get an SSH key (`~/.ssh/id_ed25519`), git (identity, SSH commit signing and repository clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations`, `media` and `cloud` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands, nerd_font (JetBrainsMono, system-wide Konsole default) and vscode; `media` and `cloud` get unattended_upgrades with automatic reboots, `workstations` without automatic reboots; `media` additionally get kodi; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run), and the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
 
 ```bash
 ansible-playbook -K -l <inventory-hostname> playbook.yaml
@@ -71,14 +71,16 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-ho
 ## Controller
 
 Every workstation is a controller.
-The first local run installs gh, already set as git credential helper, and direnv.
-Then log in to GitHub and register a new SSH key:
+The first local run installs gh, already set as git credential helper, and direnv, and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`.
+Then log in to GitHub and register both keys:
 
 ```bash
-gh auth login -h github.com -p https -w -s admin:public_key
-ssh-keygen -t ed25519 -C <user>@<host>
+gh auth login -h github.com -p https -w -s admin:public_key,admin:ssh_signing_key
 gh ssh-key add ~/.ssh/id_ed25519.pub -t <host>
+gh ssh-key add ~/.ssh/id_ed25519_signing.pub --type signing -t <host>
 ```
+
+If already logged in, add the signing scope with `gh auth refresh -s admin:ssh_signing_key` first.
 
 Copy the `.env*` files and GitHub App PEMs from an existing controller into the matching checkouts under `~/Projects`, then run `direnv allow` in each.
 
