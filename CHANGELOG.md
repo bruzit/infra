@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.0](https://github.com/bruzit/infra/compare/v0.16.0...v0.17.0) (2026-10-08)
+
+### Features
+
+* unattended upgrades on workstations ([341c38d](https://github.com/bruzit/infra/commit/341c38d6b157738ddb4d5fe128cf24509b8e2a3b))
+
 ## [0.16.0](https://github.com/bruzit/infra/compare/v0.15.1...v0.16.0) (2026-10-07)
 
 ### Features
