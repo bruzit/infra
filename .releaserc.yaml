@@ -12,5 +12,6 @@ plugins:
   - - "@semantic-release/changelog"
     - changelogTitle: '# Changelog'
   - - "@semantic-release/git"
-    - assets:
+    - message: 'chore(release): ${nextRelease.version} [skip ci]'
+      assets:
         - CHANGELOG.md
