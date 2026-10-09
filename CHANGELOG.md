@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.19.0](https://github.com/bruzit/infra/compare/v0.18.0...v0.19.0) (2026-10-09)
+
+### Features
+
+* add vscodium and chrome to desktops ([02e184f](https://github.com/bruzit/infra/commit/02e184fd1f9df3341696169906abf58695d75136))
+
 ## [0.18.0](https://github.com/bruzit/infra/compare/v0.17.0...v0.18.0) (2026-10-08)
 
 ### Features
