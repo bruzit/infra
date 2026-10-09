@@ -41,6 +41,7 @@
     - role: bruzit.ansible.vscode
     - role: bruzit.ansible.vscodium
     - role: bruzit.ansible.google_chrome
+    - role: bruzit.ansible.openttd
 
 - name: Provision unattended upgrades
   hosts: media:cloud
