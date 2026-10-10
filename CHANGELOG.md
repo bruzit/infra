@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.20.0](https://github.com/bruzit/infra/compare/v0.19.0...v0.20.0) (2026-10-10)
+
+### Features
+
+* add openttd to desktops ([ef9187a](https://github.com/bruzit/infra/commit/ef9187ab55e022254257010d77178c50aa8232dc))
+
 ## [0.19.0](https://github.com/bruzit/infra/compare/v0.18.0...v0.19.0) (2026-10-09)
 
 ### Features
