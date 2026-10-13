@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.21.0](https://github.com/bruzit/infra/compare/v0.20.0...v0.21.0) (2026-10-13)
+
+### Features
+
+* run wsl without the firewall ([d74109b](https://github.com/bruzit/infra/commit/d74109be9e4450bb811d86fa3711f8117fc66f26))
+
 ## [0.20.0](https://github.com/bruzit/infra/compare/v0.19.0...v0.20.0) (2026-10-10)
 
 ### Features
