@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.22.0](https://github.com/bruzit/infra/compare/v0.21.0...v0.22.0) (2026-10-14)
+
+### Features
+
+* resolve dns via the wsl nat gateway on wsl-beta ([85bee59](https://github.com/bruzit/infra/commit/85bee59aa395cebe7ba593d9a2c3ded2ace29c58))
+
 ## [0.21.0](https://github.com/bruzit/infra/compare/v0.20.0...v0.21.0) (2026-10-13)
 
 ### Features
