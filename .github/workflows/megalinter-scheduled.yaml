@@ -1,0 +1,17 @@
+---
+name: MegaLinter Scheduled
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    uses: bruzit/github-actions-and-workflows/.github/workflows/megalinter.yaml@v0
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      validate_all_codebase: true
