@@ -1,6 +1,6 @@
 ---
 - name: Provision base system
-  hosts: all
+  hosts: all:!appliances
   roles:
     - role: bruzit.ansible.apt
     - role: bruzit.ansible.users

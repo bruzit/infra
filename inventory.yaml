@@ -18,6 +18,10 @@ all:
       hosts:
         wsl-beta:
           ansible_connection: local
+    appliances:
+      hosts:
+        nas0:
+        nas1:
     # Hosts come from the hcloud.yaml inventory
     cloud:
       vars:
