@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.23.0](https://github.com/bruzit/infra/compare/v0.22.0...v0.23.0) (2026-10-17)
+
+### Features
+
+* add the appliances group ([11fba43](https://github.com/bruzit/infra/commit/11fba432551fc06060177c7c3e84448d9535fe54))
+
 ## [0.22.0](https://github.com/bruzit/infra/compare/v0.21.0...v0.22.0) (2026-10-14)
 
 ### Features
