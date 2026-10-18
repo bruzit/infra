@@ -11,3 +11,13 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+
+  required:
+    name: Required (MegaLinter)
+    needs: [megalinter]
+    if: always()
+    runs-on: ubuntu-slim
+    permissions: {}
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
