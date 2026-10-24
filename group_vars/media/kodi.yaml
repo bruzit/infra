@@ -1,0 +1,2 @@
+---
+kodi_webserver_password: "{{ lookup('ansible.builtin.env', 'KODI_WEBSERVER_PASSWORD', default=undef('KODI_WEBSERVER_PASSWORD not set, see .env.tmpl')) }}"
