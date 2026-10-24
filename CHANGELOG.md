@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.24.0](https://github.com/bruzit/infra/compare/v0.23.0...v0.24.0) (2026-10-24)
+
+### Features
+
+* add kodi tv, audio and remote control settings for media ([2320eb2](https://github.com/bruzit/infra/commit/2320eb2d6d05dea432c050c6176ada53938686bc))
+
 ## [0.23.0](https://github.com/bruzit/infra/compare/v0.22.0...v0.23.0) (2026-10-17)
 
 ### Features
