@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.25.0](https://github.com/bruzit/infra/compare/v0.24.0...v0.25.0) (2026-10-28)
+
+### Features
+
+* add kodi youtube add-on to media hosts ([63069eb](https://github.com/bruzit/infra/commit/63069eb37082ddd115d9d15b8307b2be674553fa))
+
 ## [0.24.0](https://github.com/bruzit/infra/compare/v0.23.0...v0.24.0) (2026-10-24)
 
 ### Features
