@@ -11,7 +11,7 @@ jobs:
     name: MegaLinter
     uses: bruzit/github-actions-and-workflows/.github/workflows/megalinter.yaml@v0
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     with:
       validate_all_codebase: true
