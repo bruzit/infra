@@ -9,8 +9,10 @@ jobs:
     name: MegaLinter
     uses: bruzit/github-actions-and-workflows/.github/workflows/megalinter.yaml@v0
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
+    secrets:
+      GH_AUTOFIX_APP_PEM_FILE: ${{ secrets.GH_AUTOFIX_APP_PEM_FILE }}
 
   required:
     name: Required (MegaLinter)
