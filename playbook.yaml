@@ -1,4 +1,13 @@
 ---
+- name: Check tiers
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Assert tier
+      ansible.builtin.assert:
+        that: bruzit_tier is defined and bruzit_tier in ['dev', 'test', 'stg', 'prod']
+        fail_msg: "{{ inventory_hostname }} has no valid bruzit_tier"
+
 - name: Provision base system
   hosts: all:!appliances
   roles:

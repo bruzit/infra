@@ -39,6 +39,8 @@ Status: Provisioned (whole scope converged by `playbook.yaml` or Terraform), In 
 | `cloud`        | `cloud0` (Hetzner, `hcloud.yaml`) | SSH                 |
 | `appliances`   | `nas0`, `nas1`                    | None (Synology DSM) |
 
+Tier groups set `bruzit_tier`: `test` (`pc0`, `pc3`, `cloud0`), `prod` (the rest); the playbook fails hosts without a valid tier.
+
 ### Bootstrap
 
 On a fresh system (apt provides ansible-core 2.20 from Ubuntu 26.04; on 24.04 use `pipx install ansible`), clone over HTTPS into `~/Projects`, where the `git` role skips existing clones:
@@ -127,10 +129,10 @@ TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
 
 SSH in by `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
 
-Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace) the group `env_<env>`, discovered by the [hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l env_<env>` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
+Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace, i.e. the tier) the tier group and `bruzit_tier`, discovered by the [hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l 'cloud:&<env>'` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
 
 ```bash
-TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l env_test playbook.yaml
+TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l 'cloud:&test' playbook.yaml
 ```
 
 Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; a recycled address with a changed key needs `ssh-keygen -R <address>`.

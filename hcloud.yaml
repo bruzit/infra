@@ -3,6 +3,9 @@ plugin: hetzner.hcloud.hcloud
 label_selector: role=cloud
 groups:
   cloud: true
+compose:
+  bruzit_tier: hcloud_labels.env
 keyed_groups:
   - key: hcloud_labels.env
-    prefix: env
+    prefix: ""
+    separator: ""

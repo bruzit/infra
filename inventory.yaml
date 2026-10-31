@@ -22,6 +22,18 @@ all:
       hosts:
         nas0:
         nas1:
+    test:
+      hosts:
+        pc0:
+        pc3:
+    prod:
+      hosts:
+        pc1:
+        pc2:
+        pc4:
+        wsl-beta:
+        nas0:
+        nas1:
     # Hosts come from the hcloud.yaml inventory
     cloud:
       vars:
