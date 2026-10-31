@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.26.0](https://github.com/bruzit/infra/compare/v0.25.0...v0.26.0) (2026-10-31)
+
+### Features
+
+* add bruzit_tier to every host ([7cd2603](https://github.com/bruzit/infra/commit/7cd2603b28797e3ae53b72e605dd7871c3a202ac))
+
 ## [0.25.0](https://github.com/bruzit/infra/compare/v0.24.0...v0.25.0) (2026-10-28)
 
 ### Features
