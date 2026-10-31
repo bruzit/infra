@@ -1,8 +1,13 @@
-# Infra
+# BruzIT Infra
+
+[![License](https://img.shields.io/github/license/bruzit/infra)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/bruzit/infra)](https://github.com/bruzit/infra/commits)
+[![MegaLinter](https://github.com/bruzit/infra/actions/workflows/megalinter.yaml/badge.svg)](https://github.com/bruzit/infra/actions/workflows/megalinter.yaml)
+[![Terraform Test](https://github.com/bruzit/infra/actions/workflows/terraform-test.yaml/badge.svg)](https://github.com/bruzit/infra/actions/workflows/terraform-test.yaml)
 
 Infrastructure blueprints for workstations, home network, edge Kubernetes lab, and self-hosted services, provisioned with Ansible and Terraform under GitOps.
 
-## Blueprints
+## Features
 
 | Blueprint       | Scope                                              | Status  |
 |-----------------|----------------------------------------------------|---------|
@@ -12,7 +17,9 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 | `home-services` | Self-hosted services and their backups             | Planned |
 | `home-web`      | Edge static hosting, CDN, domains                  | Planned |
 
-## Hosts
+## Installation and Setup
+
+### Hosts
 
 | Group          | Hosts                             | Connection          |
 |----------------|-----------------------------------|---------------------|
@@ -30,7 +37,7 @@ ansible-playbook -K -c local -l <host> playbook.yaml
 
 Afterwards run it from any [controller](#controller) holding a key listed on `github.com/bruzina.keys`. Ubuntu 25.10 and newer become via `sudo.ws` automatically.
 
-## Provisioning
+### Provisioning
 
 Fresh-system prerequisites and Ansible (`bruzit.ansible` requires ansible-core 2.20 or newer, which apt provides on Ubuntu 26.04 and newer; on 24.04 use `pipx install ansible` instead):
 
@@ -53,23 +60,7 @@ Install collections:
 ansible-galaxy collection install -r requirements.yaml
 ```
 
-Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
-
-Hosts are grouped in `inventory.yaml`: every host except `appliances` gets apt and users; `workstations` and `wsl` get an SSH key (`~/.ssh/id_ed25519`), git (identity, SSH commit signing and repository clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations`, `media` and `cloud` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands, nerd_font (JetBrainsMono, system-wide Konsole default), vscode, vscodium, google_chrome and openttd (with JGR's Patchpack); `media` and `cloud` get unattended_upgrades with automatic reboots, `workstations` without automatic reboots; `media` additionally get kodi_youtube (Kodi with the YouTube and InputStream Adaptive add-ons) and remote control (HTTP 8080, user `kodi`, password `KODI_WEBSERVER_PASSWORD` from `.env`) and Avahi discovery, `pc1` on its `HDMI-A-1` TV with HDMI audio; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run) and run without the nftables firewall; `wsl-beta` resolves DNS via the WSL NAT gateway; the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
-
-```bash
-ansible-playbook -K -l <inventory-hostname> playbook.yaml
-```
-
-Without a TTY, point Ansible at a password file instead (there is no environment variable for the password itself):
-
-```bash
-ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-hostname> playbook.yaml
-```
-
-`wsl` hosts connect locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
-
-## Controller
+### Controller
 
 Every workstation is a controller.
 The first local run installs gh, already set as git credential helper, and direnv, and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`.
@@ -97,7 +88,27 @@ Verify the new controller reaches the other hosts:
 ansible -m ping workstations:media
 ```
 
-## Cloud
+## Usage
+
+### Provision Hosts
+
+Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
+
+Hosts are grouped in `inventory.yaml`: every host except `appliances` gets apt and users; `workstations` and `wsl` get an SSH key (`~/.ssh/id_ed25519`), git (identity, SSH commit signing and repository clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations`, `media` and `cloud` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands, nerd_font (JetBrainsMono, system-wide Konsole default), vscode, vscodium, google_chrome and openttd (with JGR's Patchpack); `media` and `cloud` get unattended_upgrades with automatic reboots, `workstations` without automatic reboots; `media` additionally get kodi_youtube (Kodi with the YouTube and InputStream Adaptive add-ons) and remote control (HTTP 8080, user `kodi`, password `KODI_WEBSERVER_PASSWORD` from `.env`) and Avahi discovery, `pc1` on its `HDMI-A-1` TV with HDMI audio; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run) and run without the nftables firewall; `wsl-beta` resolves DNS via the WSL NAT gateway; the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
+
+```bash
+ansible-playbook -K -l <inventory-hostname> playbook.yaml
+```
+
+Without a TTY, point Ansible at a password file instead (there is no environment variable for the password itself):
+
+```bash
+ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-hostname> playbook.yaml
+```
+
+`wsl` hosts connect locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
+
+### Cloud
 
 `terraform/` creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
 cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. State lives in the R2 bucket `bruzit-terraform-hetzner`, one Terraform workspace per environment. Addresses are private: outputs are sensitive and the workflow masks IP addresses.
@@ -121,8 +132,6 @@ TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
 
 SSH in by `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
 
-In CI, run the manual `Terraform` workflow with `action` `apply` or `destroy`: job `Plan` plans read-only in the `test-plan` environment and writes the masked plan to the job summary; job `Apply` waits for approval of the `test` environment, then plans again and applies or destroys. Destroy promptly after testing, the server is billed hourly.
-
 Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace) the group `env_<env>`, discovered by the `hetzner.hcloud.hcloud` inventory plugin in `hcloud.yaml` with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l env_<env>` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
 
 ```bash
@@ -131,9 +140,23 @@ TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l e
 
 Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; a recycled address with a changed key needs `ssh-keygen -R <address>`.
 
+## Support
+
+Demo: a reference implementation of BruzIT products in use, best effort; [open a GitHub issue](../../issues).
+
+## Testing
+
 Test by `terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test`, with mocked providers; pull requests run it in the `Terraform Test` workflow.
 
-## Copyright and Licensing
+## Integration and Deployment
 
-[MIT License](LICENSE)  
+In CI, run the manual `Terraform` workflow with `action` `apply` or `destroy`: job `Plan` plans read-only in the `test-plan` environment and writes the masked plan to the job summary; job `Apply` waits for approval of the `test` environment, then plans again and applies or destroys. Destroy promptly after testing, the server is billed hourly.
+
+## Contributing
+
+Open a pull request to `main`. Commits follow the [Conventional Commits 1.0.0 specification](https://www.conventionalcommits.org/en/v1.0.0/), from which semantic-release sets versions and the changelog automatically.
+
+## License and Copyright
+
+MIT License: [`LICENSE`](LICENSE)  
 Copyright © 2026 Martin Bružina
