@@ -17,6 +17,12 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 | `home-services` | Self-hosted services and their backups             | Planned |
 | `home-web`      | Edge static hosting, CDN, domains                  | Planned |
 
+## Requirements
+
+- Ubuntu 24.04 or newer; `appliances` (Synology DSM) are inventory only.
+- ansible-core 2.20 or newer (required by [BruzIT Ansible Collection](https://github.com/bruzit/ansible-collection)), collections in [`requirements.yaml`](requirements.yaml).
+- Cloud: Terraform 1.15 or newer 1.x, direnv, a Hetzner Cloud project and a Cloudflare R2 bucket for state.
+
 ## Installation and Setup
 
 ### Hosts
@@ -29,42 +35,28 @@ Infrastructure blueprints for workstations, home network, edge Kubernetes lab, a
 | `cloud`        | `cloud0` (Hetzner, `hcloud.yaml`) | SSH                 |
 | `appliances`   | `nas0`, `nas1`                    | None (Synology DSM) |
 
-SSH hosts are reached by hostname. Bootstrap each one by running the playbook locally on it, which authorizes the keys from `github.com/bruzina.keys` and installs the SSH server:
+### Bootstrap
+
+On a fresh system (apt provides ansible-core 2.20 from Ubuntu 26.04; on 24.04 use `pipx install ansible`), clone over HTTPS into `~/Projects`, where the `git` role skips existing clones:
+
+```bash
+sudo apt install -y git ansible
+git clone https://github.com/bruzit/infra.git ~/Projects/infra
+cd ~/Projects/infra
+ansible-galaxy collection install -r requirements.yaml
+```
+
+Add the host to [`inventory.yaml`](inventory.yaml) under `workstations`, `media` or `wsl`, then run the playbook locally; it authorizes the keys from `github.com/bruzina.keys` and installs the SSH server:
 
 ```bash
 ansible-playbook -K -c local -l <host> playbook.yaml
 ```
 
-Afterwards run it from any [controller](#controller) holding a key listed on `github.com/bruzina.keys`. Ubuntu 25.10 and newer become via `sudo.ws` automatically.
-
-### Provisioning
-
-Fresh-system prerequisites and Ansible (`bruzit.ansible` requires ansible-core 2.20 or newer, which apt provides on Ubuntu 26.04 and newer; on 24.04 use `pipx install ansible` instead):
-
-```bash
-sudo apt install -y git ansible
-```
-
-Clone this repo into `~/Projects`, where the `git` role skips existing clones (HTTPS, a fresh machine has no SSH key or GitHub CLI yet):
-
-```bash
-git clone https://github.com/bruzit/infra.git ~/Projects/infra
-cd ~/Projects/infra
-```
-
-Add the machine to `inventory.yaml` under `workstations`, `media` or `wsl` if it is not there yet.
-
-Install collections:
-
-```bash
-ansible-galaxy collection install -r requirements.yaml
-```
+Afterwards run it from any controller. SSH hosts are reached by hostname; Ubuntu 25.10 and newer become via `sudo.ws` automatically.
 
 ### Controller
 
-Every workstation is a controller.
-The first local run installs gh, already set as git credential helper, and direnv, and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`.
-Then log in to GitHub and register both keys:
+Every `workstations` and `wsl` host is a controller: the first local run installs gh (git credential helper) and direnv and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`. Log in to GitHub and register both keys (if already logged in, `gh auth refresh -s admin:ssh_signing_key` first):
 
 ```bash
 gh auth login -h github.com -p https -w -s admin:public_key,admin:ssh_signing_key
@@ -72,19 +64,10 @@ gh ssh-key add ~/.ssh/id_ed25519.pub -t <host>
 gh ssh-key add ~/.ssh/id_ed25519_signing.pub --type signing -t <host>
 ```
 
-If already logged in, add the signing scope with `gh auth refresh -s admin:ssh_signing_key` first.
-
-Copy the `.env*` files and GitHub App PEMs from an existing controller into the matching checkouts under `~/Projects`, then run `direnv allow` in each.
-
-From an existing controller, re-run the playbook on the other SSH hosts so their authorized keys, taken from `github.com/bruzina.keys`, include the new key:
+Copy the `.env*` files and GitHub App PEMs from an existing controller into the matching checkouts under `~/Projects`, then run `direnv allow` in each. From an existing controller, re-run the playbook on the other SSH hosts so their authorized keys include the new key, then verify:
 
 ```bash
 ansible-playbook -K -l <host> playbook.yaml
-```
-
-Verify the new controller reaches the other hosts:
-
-```bash
 ansible -m ping workstations:media
 ```
 
@@ -92,26 +75,34 @@ ansible -m ping workstations:media
 
 ### Provision Hosts
 
-Accounts are defined once in `group_vars/all/accounts.yaml` and passed to the `users`, `git`, `gh` and `docker` roles; each account's `repositories` are cloned into `~/Projects`.
+Accounts are defined once in [`group_vars/all/accounts.yaml`](group_vars/all/accounts.yaml); each account's `repositories` are cloned into `~/Projects`. Roles per group, from [`playbook.yaml`](playbook.yaml):
 
-Hosts are grouped in `inventory.yaml`: every host except `appliances` gets apt and users; `workstations` and `wsl` get an SSH key (`~/.ssh/id_ed25519`), git (identity, SSH commit signing and repository clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq and mc; `workstations`, `media` and `cloud` get ssh_server and fail2ban; `workstations` additionally get snap, obsidian, widelands, nerd_font (JetBrainsMono, system-wide Konsole default), vscode, vscodium, google_chrome and openttd (with JGR's Patchpack); `media` and `cloud` get unattended_upgrades with automatic reboots, `workstations` without automatic reboots; `media` additionally get kodi_youtube (Kodi with the YouTube and InputStream Adaptive add-ons) and remote control (HTTP 8080, user `kodi`, password `KODI_WEBSERVER_PASSWORD` from `.env`) and Avahi discovery, `pc1` on its `HDMI-A-1` TV with HDMI audio; `wsl` hosts additionally get wsl (no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; run `wsl --shutdown` from Windows after the first run) and run without the nftables firewall; `wsl-beta` resolves DNS via the WSL NAT gateway; the Docker daemon is started by hand with `sudo service docker start`. Always limit the run with `-l`; `-K` prompts for the sudo password:
+| Group                            | Roles                                                                                                                                  |
+|----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| All but `appliances`             | apt, users                                                                                                                             |
+| `workstations`, `wsl`            | SSH key, git (identity, SSH commit signing, clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq, mc |
+| `workstations`, `media`, `cloud` | ssh_server, fail2ban                                                                                                                   |
+| `workstations`                   | snap, obsidian, widelands, nerd_font, vscode, vscodium, google_chrome, openttd; unattended_upgrades without reboot                     |
+| `media`, `cloud`                 | unattended_upgrades with automatic reboot                                                                                              |
+| `media`                          | kodi_youtube: Kodi with YouTube and InputStream Adaptive add-ons, web remote control, Avahi discovery                                  |
+| `wsl`                            | wsl: no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; no nftables firewall                                           |
+
+Always limit the run with `-l`; `-K` prompts for the sudo password, without a TTY use a password file:
 
 ```bash
-ansible-playbook -K -l <inventory-hostname> playbook.yaml
+ansible-playbook -K -l <host> playbook.yaml
+ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <host> playbook.yaml
 ```
 
-Without a TTY, point Ansible at a password file instead (there is no environment variable for the password itself):
+Host notes:
 
-```bash
-ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <inventory-hostname> playbook.yaml
-```
-
-`wsl` hosts connect locally, so `ansible.builtin.reboot` refuses to run — keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades.
+- `media`: Kodi web server password from `KODI_WEBSERVER_PASSWORD` in `.env`; `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
+- `wsl`: run `wsl --shutdown` from Windows after the first run; start Docker by hand with `sudo service docker start`; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway.
 
 ### Cloud
 
-`terraform/` creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
-cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. State lives in the R2 bucket `bruzit-terraform-hetzner`, one Terraform workspace per environment. Addresses are private: outputs are sensitive and the workflow masks IP addresses.
+[`terraform/`](terraform) creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
+cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. State lives in the R2 bucket `$AWS_BUCKET`, one Terraform workspace per environment. Addresses are private: outputs are sensitive and the workflow masks IP addresses.
 
 Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.test.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
 
@@ -132,7 +123,7 @@ TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
 
 SSH in by `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
 
-Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace) the group `env_<env>`, discovered by the `hetzner.hcloud.hcloud` inventory plugin in `hcloud.yaml` with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l env_<env>` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
+Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace) the group `env_<env>`, discovered by the [hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l env_<env>` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
 
 ```bash
 TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l env_test playbook.yaml
@@ -146,11 +137,23 @@ Demo: a reference implementation of BruzIT products in use, best effort; [open a
 
 ## Testing
 
-Test by `terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test`, with mocked providers; pull requests run it in the `Terraform Test` workflow.
+MegaLinter (Ansible, Terraform, YAML, Markdown, GitHub Actions) and Terraform `fmt`, `validate` and `test` with mocked providers run on pull requests. Locally:
+
+```bash
+terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test
+```
 
 ## Integration and Deployment
 
-In CI, run the manual `Terraform` workflow with `action` `apply` or `destroy`: job `Plan` plans read-only in the `test-plan` environment and writes the masked plan to the job summary; job `Apply` waits for approval of the `test` environment, then plans again and applies or destroys. Destroy promptly after testing, the server is billed hourly.
+| Workflow                                                            | Trigger                          | Purpose                                                                                   |
+|---------------------------------------------------------------------|----------------------------------|-------------------------------------------------------------------------------------------|
+| [MegaLinter](.github/workflows/megalinter.yaml)                     | Pull request                     | Lint changed files; required check `Required (MegaLinter)`                                |
+| [Terraform Test](.github/workflows/terraform-test.yaml)             | Pull request                     | Terraform `fmt`, `validate`, `test`; required check `Required (Terraform Test)`           |
+| [MegaLinter Scheduled](.github/workflows/megalinter-scheduled.yaml) | Weekly, Monday 06:00 UTC; manual | Lint the whole codebase                                                                   |
+| [Semantic Release](.github/workflows/semantic-release.yaml)         | Push to `main`                   | Version, changelog and GitHub release                                                     |
+| [Terraform](.github/workflows/terraform.yaml)                       | Manual, `apply` or `destroy`     | `Plan` read-only in environment `test-plan`; `Apply` after approval of environment `test` |
+
+The `Terraform` workflow writes the IP-masked plan to the job summary; `Apply` plans again before applying or destroying. Destroy promptly after testing, the server is billed hourly.
 
 ## Contributing
 
@@ -160,3 +163,20 @@ Open a pull request to `main`. Commits follow the [Conventional Commits 1.0.0 sp
 
 MIT License: [`LICENSE`](LICENSE)  
 Copyright © 2026 Martin Bružina
+
+## References
+
+- [BruzIT Ansible Collection](https://github.com/bruzit/ansible-collection)
+- [BruzIT GitHub Actions and Workflows](https://github.com/bruzit/github-actions-and-workflows)
+- [hetznercloud/hcloud: Terraform provider documentation](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)
+
+## Stats
+
+| Metric           | Badges                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Commits          | [![Commits total](https://img.shields.io/github/commit-activity/t/bruzit/infra?label=commits%20total)](https://github.com/bruzit/infra/commits/main)                                                                                                                                                                                                                                                                       |
+| Issues           | [![Issues open](https://img.shields.io/github/issues/bruzit/infra?label=issues)](https://github.com/bruzit/infra/issues) [![Issues total](https://img.shields.io/github/issues-search?query=repo%3Abruzit%2Finfra%20is%3Aissue&label=issues%20total)](https://github.com/bruzit/infra/issues?q=is%3Aissue)                                                                                                                 |
+| Pull requests    | [![Pull requests open, not draft](https://img.shields.io/github/issues-search?query=repo%3Abruzit%2Finfra%20is%3Apr%20is%3Aopen%20draft%3Afalse&label=PRs%20open)](https://github.com/bruzit/infra/pulls?q=is%3Apr+is%3Aopen+draft%3Afalse) [![Pull requests total](https://img.shields.io/github/issues-search?query=repo%3Abruzit%2Finfra%20is%3Apr&label=PRs%20total)](https://github.com/bruzit/infra/pulls?q=is%3Apr) |
+| Checks on `main` | [![Checks on main](https://img.shields.io/github/check-runs/bruzit/infra/main?label=checks%20%28main%29)](https://github.com/bruzit/infra/actions?query=branch%3Amain)                                                                                                                                                                                                                                                     |
+| Releases         | [![Latest release](https://img.shields.io/github/v/release/bruzit/infra)](https://github.com/bruzit/infra/releases/latest) [![Commits since latest release](https://img.shields.io/github/commits-since/bruzit/infra/latest)](https://github.com/bruzit/infra/releases)                                                                                                                                                    |
+| Community        | [![Stargazers](https://img.shields.io/github/stars/bruzit/infra)](https://github.com/bruzit/infra/stargazers) [![Forks](https://img.shields.io/github/forks/bruzit/infra)](https://github.com/bruzit/infra/forks) [![Contributors](https://img.shields.io/github/contributors/bruzit/infra)](https://github.com/bruzit/infra/graphs/contributors)                                                                          |
