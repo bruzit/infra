@@ -4,18 +4,22 @@
 [![Last commit](https://img.shields.io/github/last-commit/bruzit/infra)](https://github.com/bruzit/infra/commits)
 [![MegaLinter](https://github.com/bruzit/infra/actions/workflows/megalinter.yaml/badge.svg)](https://github.com/bruzit/infra/actions/workflows/megalinter.yaml)
 [![Terraform Test](https://github.com/bruzit/infra/actions/workflows/terraform-test.yaml/badge.svg)](https://github.com/bruzit/infra/actions/workflows/terraform-test.yaml)
+[![Semantic Release](https://github.com/bruzit/infra/actions/workflows/semantic-release.yaml/badge.svg)](https://github.com/bruzit/infra/actions/workflows/semantic-release.yaml)
+[![Terraform](https://github.com/bruzit/infra/actions/workflows/terraform.yaml/badge.svg)](https://github.com/bruzit/infra/actions/workflows/terraform.yaml)
 
 Infrastructure blueprints for workstations, home network, edge Kubernetes lab, and self-hosted services, provisioned with Ansible and Terraform under GitOps.
 
 ## Features
 
-| Blueprint       | Scope                                              | Status  |
-|-----------------|----------------------------------------------------|---------|
-| `PC`            | Workstations, laptops, gaming desktop, peripherals | Planned |
-| `home-net`      | Routers, APs, switches, UPS, cabling               | Planned |
-| `home-lab`      | Bare-metal servers, storage, Kubernetes            | Planned |
-| `home-services` | Self-hosted services and their backups             | Planned |
-| `home-web`      | Edge static hosting, CDN, domains                  | Planned |
+| Blueprint       | Scope                                              | Status      | Provisioned                                               |
+|-----------------|----------------------------------------------------|-------------|-----------------------------------------------------------|
+| `PC`            | Workstations, laptops, gaming desktop, peripherals | In progress | `workstations`, `wsl`; peripherals not yet                |
+| `home-net`      | Routers, APs, switches, UPS, cabling               | Planned     | None                                                      |
+| `home-lab`      | Bare-metal servers, storage, Kubernetes            | Planned     | None; `appliances` inventory only                         |
+| `home-services` | Self-hosted services and their backups             | In progress | `media` (Kodi); backups not yet                           |
+| `home-web`      | Edge static hosting, CDN, domains                  | In progress | `cloud` test server (Terraform, Hetzner); hosting not yet |
+
+Status: Provisioned (whole scope converged by `playbook.yaml` or Terraform), In progress (part of the scope), Planned (not started).
 
 ## Requirements
 
