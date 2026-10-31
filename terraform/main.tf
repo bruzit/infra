@@ -48,13 +48,10 @@ resource "hcloud_server" "cloud0" {
   labels       = { role = "cloud", env = terraform.workspace }
 
   user_data = "#cloud-config\n${yamlencode({
-    disable_root   = true
-    ssh_pwauth     = false
-    package_update = true
+    disable_root = true
+    ssh_pwauth   = false
     users = [{
       name                = "mb"
-      groups              = "sudo"
-      shell               = "/bin/bash"
       sudo                = "ALL=(ALL) NOPASSWD:ALL"
       ssh_authorized_keys = local.ssh_keys
     }]
