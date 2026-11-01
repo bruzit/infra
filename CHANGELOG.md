@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.27.0](https://github.com/bruzit/infra/compare/v0.26.0...v0.27.0) (2026-11-01)
+
+### Features
+
+* **media:** add netflix to kodi ([860b80b](https://github.com/bruzit/infra/commit/860b80b1d135f79dfe1e7880c391de093a837344))
+
 ## [0.26.0](https://github.com/bruzit/infra/compare/v0.25.0...v0.26.0) (2026-10-31)
 
 ### Features
