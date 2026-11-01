@@ -90,7 +90,7 @@ Accounts are defined once in [`group_vars/all/accounts.yaml`](group_vars/all/acc
 | `workstations`, `media`, `cloud` | ssh_server, fail2ban                                                                                                                   |
 | `workstations`                   | snap, obsidian, widelands, nerd_font, vscode, vscodium, google_chrome, openttd; unattended_upgrades without reboot                     |
 | `media`, `cloud`                 | unattended_upgrades with automatic reboot                                                                                              |
-| `media`                          | kodi_youtube: Kodi with YouTube and InputStream Adaptive add-ons, web remote control, Avahi discovery                                  |
+| `media`                          | kodi_youtube, kodi_netflix: Kodi with YouTube, Netflix and InputStream Adaptive add-ons, web remote control, Avahi discovery           |
 | `wsl`                            | wsl: no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; no nftables firewall                                           |
 
 Always limit the run with `-l`; `-K` prompts for the sudo password, without a TTY use a password file:

@@ -67,6 +67,7 @@
   hosts: media
   roles:
     - role: bruzit.ansible.kodi_youtube
+    - role: bruzit.ansible.kodi_netflix
 
 - name: Provision WSL
   hosts: wsl
