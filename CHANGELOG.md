@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.28.0](https://github.com/bruzit/infra/compare/v0.27.0...v0.28.0) (2026-11-02)
+
+### Features
+
+* install htop on all hosts ([f6122f5](https://github.com/bruzit/infra/commit/f6122f5e2b8634f6bfdb69caa61bcd1843414112))
+
 ## [0.27.0](https://github.com/bruzit/infra/compare/v0.26.0...v0.27.0) (2026-11-01)
 
 ### Features
