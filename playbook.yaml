@@ -12,6 +12,7 @@
   hosts: all:!appliances
   roles:
     - role: bruzit.ansible.apt
+    - role: bruzit.ansible.htop
     - role: bruzit.ansible.users
       users_accounts: "{{ accounts }}"
 
