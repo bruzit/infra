@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.29.0](https://github.com/bruzit/infra/compare/v0.28.0...v0.29.0) (2026-11-03)
+
+### Features
+
+* **claude:** open agent view by default on all hosts ([0f9af41](https://github.com/bruzit/infra/commit/0f9af4198cbbb630f6c2586b57eadbee20d9a418))
+
 ## [0.28.0](https://github.com/bruzit/infra/compare/v0.27.0...v0.28.0) (2026-11-02)
 
 ### Features
