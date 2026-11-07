@@ -1,0 +1,3 @@
+---
+# assess on test before workstations (D-4 §2); needs bruzit.ansible.grub with grub_cmdline_linux_default_extra
+grub_cmdline_linux_default_extra: [preempt=full]
