@@ -16,6 +16,13 @@
     - role: bruzit.ansible.users
       users_accounts: "{{ accounts }}"
 
+# Physical Ubuntu hosts; appliances run DSM, wsl and cloud boot without a menu
+- name: Provision bootloader
+  hosts: workstations:media
+  roles:
+    - role: bruzit.ansible.grub
+      grub_timeout: 10
+
 - name: Provision developer tooling
   hosts: workstations:wsl
   roles:
