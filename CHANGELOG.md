@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.31.0](https://github.com/bruzit/infra/compare/v0.30.0...v0.31.0) (2026-11-07)
+
+### Features
+
+* **grub:** set a 10 s GRUB menu timeout on physical hosts ([146b5e2](https://github.com/bruzit/infra/commit/146b5e2567543f1316e8c72c8a4cc9c26b49ced4))
+
 ## [0.30.0](https://github.com/bruzit/infra/compare/v0.29.0...v0.30.0) (2026-11-07)
 
 ### Features
