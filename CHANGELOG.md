@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.30.0](https://github.com/bruzit/infra/compare/v0.29.0...v0.30.0) (2026-11-07)
+
+### Features
+
+* **wsl:** enable superpowers and mattpocock-skills claude plugins ([312b21f](https://github.com/bruzit/infra/commit/312b21f0db176bd13065dc34c21f116a740ab0d5))
+
 ## [0.29.0](https://github.com/bruzit/infra/compare/v0.28.0...v0.29.0) (2026-11-03)
 
 ### Features
