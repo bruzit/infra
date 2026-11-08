@@ -26,6 +26,7 @@
 - name: Provision developer tooling
   hosts: workstations:wsl
   roles:
+    - role: bruzit.ansible.ansible_core
     - role: bruzit.ansible.git
       git_users: "{{ accounts }}"
     - role: bruzit.ansible.claude
