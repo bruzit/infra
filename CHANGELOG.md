@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.35.0](https://github.com/bruzit/infra/compare/v0.34.0...v0.35.0) (2026-11-08)
+
+### Features
+
+* **wsl:** install ansible-core on workstations and wsl ([0b11b8e](https://github.com/bruzit/infra/commit/0b11b8eaeb5026d7d0d31c2e7d20a0e0e6d97603))
+
 ## [0.34.0](https://github.com/bruzit/infra/compare/v0.33.0...v0.34.0) (2026-11-08)
 
 ### Features
