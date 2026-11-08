@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.32.0](https://github.com/bruzit/infra/compare/v0.31.0...v0.32.0) (2026-11-08)
+
+### Features
+
+* **wsl:** enable systemd so unattended-upgrades runs ([43a124b](https://github.com/bruzit/infra/commit/43a124bd729e770ea943360f89901513c0804d7d))
+
 ## [0.31.0](https://github.com/bruzit/infra/compare/v0.30.0...v0.31.0) (2026-11-07)
 
 ### Features
