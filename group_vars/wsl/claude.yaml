@@ -8,3 +8,15 @@ claude_settings:
   enabledPlugins:
     superpowers@claude-plugins-official: true
     mattpocock-skills@claude-plugins-official: true
+  attribution:
+    commit: ""
+    pr: ""
+  permissions:
+    deny:
+      - Read(//**/.obsidian/plugins/remotely-save/data.json)
+      - Read(//**/.env)
+      - Read(//**/.env.apply)
+      - Read(//**/.env.plan)
+      - Read(//**/.env.*.apply)
+      - Read(//**/.env.*.plan)
+      - Read(//**/*.pem)
