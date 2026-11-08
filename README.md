@@ -46,7 +46,7 @@ Tier groups set `bruzit_tier`: `test` (`pc0`, `pc3`, `cloud0`), `prod` (the rest
 On a fresh system (apt provides ansible-core 2.20 from Ubuntu 26.04; on 24.04 use `pipx install ansible`), clone over HTTPS into `~/Projects`, where the `git` role skips existing clones:
 
 ```bash
-sudo apt install -y git ansible
+sudo apt install -y git ansible-core
 git clone https://github.com/bruzit/infra.git ~/Projects/infra
 cd ~/Projects/infra
 ansible-galaxy collection install -r requirements.yaml
