@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.33.0](https://github.com/bruzit/infra/compare/v0.32.0...v0.33.0) (2026-11-08)
+
+### Features
+
+* **claude:** drop AI attribution and deny reads of secret files ([ee1be3a](https://github.com/bruzit/infra/commit/ee1be3ac2b9166009e08de2a0a11cba5dc02226f))
+
 ## [0.32.0](https://github.com/bruzit/infra/compare/v0.31.0...v0.32.0) (2026-11-08)
 
 ### Features
