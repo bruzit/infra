@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.34.0](https://github.com/bruzit/infra/compare/v0.33.0...v0.34.0) (2026-11-08)
+
+### Features
+
+* **grub:** try full preemption on pc0 ([fc5d0a2](https://github.com/bruzit/infra/commit/fc5d0a29d6ffe265fbee02dcdfb201255940354a))
+
 ## [0.33.0](https://github.com/bruzit/infra/compare/v0.32.0...v0.33.0) (2026-11-08)
 
 ### Features
