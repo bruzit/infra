@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.37.0](https://github.com/bruzit/infra/compare/v0.36.0...v0.37.0) (2026-11-17)
+
+### Features
+
+* **tmp:** mount /tmp as tmpfs on workstations and media ([6a4d59d](https://github.com/bruzit/infra/commit/6a4d59d1e12e0933c5445103c7fe6ec68fff492e))
+
 ## [0.36.0](https://github.com/bruzit/infra/compare/v0.35.0...v0.36.0) (2026-11-17)
 
 ### Features
