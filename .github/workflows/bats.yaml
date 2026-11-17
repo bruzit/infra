@@ -3,16 +3,34 @@ name: BATS
 
 on:
   pull_request:
-    paths:
-      - claude/**
-      - .github/workflows/bats.yaml
 
 permissions:
   contents: read
 
 jobs:
+  gate:
+    name: Gate
+    runs-on: ubuntu-slim
+    permissions:
+      pull-requests: read
+    outputs:
+      run: ${{ steps.changes.outputs.run }}
+    steps:
+      - name: Detect BATS inputs
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --paginate --jq '.[].filename')
+          run=false
+          grep -qE '^(claude/|\.github/workflows/bats\.yaml$)' <<<"$files" && run=true
+          echo "run=$run" >>"$GITHUB_OUTPUT"
+
   bats:
     name: BATS
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-slim
     steps:
       - name: Checkout
@@ -26,7 +44,7 @@ jobs:
 
   required:
     name: Required (BATS)
-    needs: [bats]
+    needs: [gate, bats]
     if: always()
     runs-on: ubuntu-slim
     permissions: {}
