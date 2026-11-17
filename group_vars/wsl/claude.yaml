@@ -8,6 +8,8 @@ claude_settings:
   enabledPlugins:
     superpowers@claude-plugins-official: true
     mattpocock-skills@claude-plugins-official: true
+  statusLine:
+    refreshInterval: 60
   attribution:
     commit: ""
     pr: ""

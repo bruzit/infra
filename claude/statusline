@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+# Claude Code status line
+#   1: model [flags] · effort │ dir [+added]
+#   2: ctx │ cache │ 5h │ 7d │ $        ⟶ right-aligned: worktree / PR / git
+# Stdin is untrusted: jq strips control characters and reduces numbers to bounded integers,
+# bash re-validates every number before arithmetic.
+# shellcheck disable=SC2154  # fields are assigned via read "${fields[@]}"
+set -u
+shopt -s extglob
+export LC_ALL=C.UTF-8
+
+R=$'\e[0m' DIM=$'\e[2m' B=$'\e[1m'
+GRN=$'\e[32m' YEL=$'\e[33m' RED=$'\e[31m' CYN=$'\e[36m'
+SEP=" ${DIM}│${R} "
+
+if ! command -v jq >/dev/null; then
+  printf '%sstatus line: jq missing%s\n' "$DIM" "$R"
+  exit 0
+fi
+
+fields=(model effort fast think dir odir added sid
+  ctx_pct ctx_in ctx_size big
+  pc pc_warm pc_exp pc_ttl pc_hit pc_miss pc_cause pc_recache
+  h5p h5r d7p d7r spp spr spper
+  wt pr_num pr_url pr_state pr_kind)
+nums=(added ctx_pct pc_exp pc_hit pc_miss h5p h5r d7p d7r spp spr pr_num)
+
+if ! out=$(jq -r '
+  def g(f): first((try f catch null), null);
+  def t: if type == "string" then gsub("[[:cntrl:]]"; "")
+         elif type == "number" or type == "boolean" then tostring else "" end;
+  def ok: type == "number" and . > -1e15 and . < 1e15;
+  def n: if ok then floor | tostring else "" end;
+  def r: if ok then round | tostring else "" end;
+  def k: if ok and . >= 0 then
+           if . >= 1e6 then (. / 1e5 | round / 10) as $v | "\(if $v == ($v | floor) then $v | floor else $v end)M"
+           elif . >= 1000 then "\(. / 1000 | round)k" else "\(floor)" end
+         else "" end;
+  [ (g(.model.display_name) | t), (g(.effort.level) | t), (g(.fast_mode) | t), (g(.thinking.enabled) | t),
+    (g(.workspace.current_dir) // g(.cwd) | t), (g(.worktree.original_cwd) | t),
+    (g(.workspace.added_dirs) | if type == "array" then length else 0 end | tostring), (g(.session_id) | t),
+    (g(.context_window.used_percentage) | r), (g(.context_window.total_input_tokens) | k),
+    (g(.context_window.context_window_size) | k), (g(.exceeds_200k_tokens) | t),
+    (g(.prompt_cache) | if type == "object" then "1" else "" end), (g(.prompt_cache.warm) | t),
+    (g(.prompt_cache.expires_at) | n), (g(.prompt_cache.ttl) | t),
+    (g(.prompt_cache.hit_ratio) | if ok then (if . <= 1 then . * 100 else . end) else null end | r),
+    (g(.prompt_cache.misses) | n),
+    (g(.prompt_cache.miss_causes) | if type == "object" and length > 0
+       then to_entries | max_by(.value | if type == "number" then . else 0 end) | .key | t else "" end),
+    (g(.prompt_cache.recache_tokens_if_cold) | k),
+    (g(.rate_limits.five_hour.used_percentage) | r), (g(.rate_limits.five_hour.resets_at) | n),
+    (g(.rate_limits.seven_day.used_percentage) | r), (g(.rate_limits.seven_day.resets_at) | n),
+    (g(.rate_limits.spend_limit.used_percentage) | r), (g(.rate_limits.spend_limit.resets_at) | n),
+    (g(.rate_limits.spend_limit.period) | t),
+    (g(.worktree.name) | t), (g(.pr.number) | n), (g(.pr.url) | t), (g(.pr.review_state) | t), (g(.pr.kind) | t)
+  ] | join("\u001f")' 2>/dev/null) || [[ -z $out ]]; then
+  printf '%sstatus line: no input%s\n' "$DIM" "$R"
+  exit 0
+fi
+IFS=$'\x1f' read -r "${fields[@]}" <<<"$out"
+for v in "${nums[@]}"; do [[ ${!v} =~ ^-?[0-9]+$ ]] || printf -v "$v" %s ''; done
+
+printf -v now '%(%s)T' -1
+cols=${COLUMNS:-}
+[[ $cols =~ ^[0-9]+$ ]] || cols=120
+((cols < 40)) && cols=40
+avail=$((cols - 4))
+
+# helpers set globals instead of printing, so no subshells
+col() { if (($1 >= 80)); then C=$RED; elif (($1 >= 50)); then C=$YEL; else C=$GRN; fi; }
+bar() { local f=$((($1 * 10 + 50) / 100)) i; BAR=""; ((f > 10)) && f=10; ((f < 0)) && f=0
+  for ((i = 0; i < 10; i++)); do if ((i < f)); then BAR+="█"; else BAR+="░"; fi; done; }
+width() { # visible columns; ⚡ is the only double-width glyph used
+  local s=${1//$'\e]8;;'*([!$'\e'])$'\e\\'/} n; s=${s//$'\e['*([0-9;])m/}; n=${s//⚡/}; W=$((${#s} * 2 - ${#n})); }
+limit() { # label pct reset window_s fmt -> FULL (with reset time), SHORT (without)
+  FULL="" SHORT=""; [[ -n $2 ]] || return 0
+  local pace="" rt=""; col "$2"
+  if [[ -n $3 ]] && (($3 > now && $3 - now <= $4)); then # skip past, ms-epoch or out-of-window resets
+    (($2 > (now - $3 + $4) * 100 / $4 + 5)) && pace=" ${RED}▲${R}"
+    printf -v rt " ${DIM}↻ %(${5})T${R}" "$3"
+  fi
+  SHORT="${SEP}$1 ${C}${2}%${R}${pace}" FULL="${SHORT}${rt}"
+}
+gitinfo() { # gb gd ga gz for $dir; cached 10 s per session in a private dir
+  gb="" gd="" ga=0 gz=0
+  [[ -n $dir && -d $dir ]] || return 0
+  local cdir=${XDG_RUNTIME_DIR:-} cache="" c_ts="" c_dir="" out l oid="" s=${sid//[^A-Za-z0-9-]/}
+  [[ -n $cdir && -d $cdir && -O $cdir ]] || cdir=${HOME:+$HOME/.cache}
+  if [[ -n $cdir ]]; then
+    cdir+=/claude-statusline
+    # shellcheck disable=SC2174  # only the leaf must be private
+    [[ -d $cdir ]] || mkdir -p -m 700 -- "$cdir" 2>/dev/null
+    [[ -d $cdir && ! -L $cdir && -O $cdir ]] && cache=$cdir/${s:-nosid}
+  fi
+  if [[ -n $cache && -f $cache ]] && IFS=$'\x1f' read -r c_ts c_dir gb gd ga gz <"$cache" &&
+    [[ $c_ts =~ ^[0-9]+$ && $c_dir == "$dir" ]] && ((now - c_ts < 10)); then
+    :
+  else
+    # status runs no hooks; fsmonitor is the one config-driven command it would execute
+    out=$(timeout 1 git -C "$dir" -c core.fsmonitor=false -c core.untrackedCache=false \
+      --no-optional-locks status --porcelain=v2 --branch 2>/dev/null)
+    gb="" gd="" ga=0 gz=0
+    while IFS= read -r l; do
+      case $l in
+        '# branch.oid '*) oid=${l#'# branch.oid '} ;;
+        '# branch.head '*) gb=${l#'# branch.head '} ;;
+        '# branch.ab +'*) l=${l#'# branch.ab +'}; ga=${l%% *}; gz=${l##* -} ;;
+        '#'*) ;;
+        ?*) gd=1 ;;
+      esac
+    done <<<"$out"
+    [[ $gb == '(detached)' ]] && gb=${oid:0:7}
+    [[ -n $cache ]] && printf '%s\x1f%s\x1f%s\x1f%s\x1f%s\x1f%s\n' "$now" "$dir" "$gb" "$gd" "$ga" "$gz" >"$cache" 2>/dev/null
+  fi
+  gb=${gb//[[:cntrl:]]/}
+  [[ $gd == 1 ]] || gd=""
+  [[ $ga =~ ^[0-9]+$ ]] || ga=0
+  [[ $gz =~ ^[0-9]+$ ]] || gz=0
+}
+
+# ── line 1 ───────────────────────────────────────────────────────────
+l1="${B}${model:-?}${R}"
+[[ $fast == true ]] && l1+=" ${YEL}⚡${R}"
+[[ $think == false ]] && l1+=" ${DIM}∅ think${R}"
+[[ -n $effort ]] && l1+=" ${DIM}·${R} ${CYN}${effort}${R}"
+shown=${odir:-$dir} h=${HOME:-}
+[[ -n $h && ($shown == "$h" || $shown == "$h"/*) ]] && shown="~${shown#"$h"}"
+tail=""; ((${added:-0} > 0)) && tail=" ${DIM}+${added}${R}"
+width "${l1}${SEP}${tail}"; room=$((avail - W))
+if ((${#shown} > room && ${#shown} > 13)); then keep=$((room > 13 ? room - 1 : 12)); shown="…${shown: -keep}"; fi
+l1+="${SEP}${shown}${tail}"
+
+# ── line 2 segments, each built once in full and short form ──────────
+if [[ -n $ctx_pct ]]; then
+  col "$ctx_pct"; bar "$ctx_pct"
+  ctx_s="ctx ${C}${BAR} ${ctx_pct}%${R}" flags=""
+  ctx_f=$ctx_s; [[ -n $ctx_in && -n $ctx_size ]] && ctx_f+=" ${DIM}${ctx_in}/${ctx_size}${R}"
+  [[ $big == true ]] && flags+=" ${YEL}⚑${R}"
+  ((ctx_pct >= 80)) && flags+=" ${RED}⚠ /compact${R}"
+  ctx_s+=$flags ctx_f+=$flags
+else
+  ctx_s="ctx ${DIM}–${R}" ctx_f=$ctx_s
+fi
+
+cache_s="${SEP}cache ${DIM}–${R}" cache_f=$cache_s
+if [[ -n $pc && ($pc_warm == true || $pc_warm == false) ]]; then
+  left="" cold=0
+  [[ -n $pc_exp ]] && left=$((pc_exp - now))
+  [[ $pc_warm == false ]] && cold=1
+  [[ -n $left ]] && ((left <= 0)) && cold=1
+  if ((cold)); then
+    cache_s="${SEP}cache ${RED}✗${pc_recache:+ $pc_recache}${R}" cache_f=$cache_s
+  else
+    warn=600; [[ $pc_ttl == 5m ]] && warn=120
+    if [[ -z $left ]]; then cs="${GRN}✓${R}"
+    elif ((left < 60)); then cs="${RED}✓ <1m${R}"
+    elif ((left <= warn)); then cs="${YEL}✓ $((left / 60))m${R}"
+    else cs="${GRN}✓ $((left / 60))m${R}"; fi
+    cache_s="${SEP}cache ${cs}" cache_f=$cache_s
+    if ((${pc_miss:-0} > 0)) && [[ -n $pc_hit ]] && ((pc_hit < 80)); then
+      cause=${pc_cause:0:24}
+      cache_s+=" ${YEL}${pc_hit}%${R}"
+      cache_f+=" ${YEL}${pc_hit}% ⚠ ${cause:-miss}${R}"
+    fi
+  fi
+fi
+
+limit 5h "$h5p" "$h5r" 18000 '%H:%M'; h5=$FULL
+limit 7d "$d7p" "$d7r" 604800 '%a %H:%M'; d7_f=$FULL d7_s=$SHORT
+sp_s="" sp_f=""
+if [[ -n $spp ]]; then
+  col "$spp"; sp_s="${SEP}\$ ${C}${spp}%${R}" sp_f=$sp_s
+  if [[ -n $spr ]] && ((spr > now)); then
+    case $spper in daily) f='%H:%M' ;; weekly) f='%a %H:%M' ;; *) f='%a %d.%m.' ;; esac
+    printf -v rt " ${DIM}↻ %(${f})T${R}" "$spr"; sp_f+=$rt
+  fi
+fi
+
+# ── line 2 right: worktree / PR / git ────────────────────────────────
+right="" right_s="" wtp=""
+[[ -n $wt ]] && wtp="${CYN}⎇ ${wt}${R}"
+if [[ -n $pr_num ]]; then
+  case $pr_state in
+    approved) c=$GRN sym="✓" lbl="approved" ;;
+    pending) c=$YEL sym="●" lbl="pending" ;;
+    changes_requested) c=$RED sym="✗" lbl="changes requested" ;;
+    draft) c=$DIM sym="◌" lbl="draft" ;;
+    *) c="" sym="" lbl="" ;;
+  esac
+  num="#${pr_num}"; [[ $pr_kind == mr ]] && num="!${pr_num}"
+  osc=$'\e]8;;' st=$'\e\\'
+  [[ $pr_url == https://* ]] && num="${osc}${pr_url}${st}${num}${osc}${st}"
+  pre=""; [[ -n $wtp ]] && pre="${wtp} ${DIM}→${R} "
+  right="${pre}${c}${num}${sym:+ $sym}${lbl:+ $lbl}${R}"
+  right_s="${pre}${c}${num}${sym:+ $sym}${R}"
+else
+  gitinfo
+  if [[ -n $gb ]]; then
+    right=${wtp:-${CYN}${gb}${R}}
+    [[ -n $gd ]] && right+=" ${YEL}✱${R}"
+    ((ga > 0)) && right+=" ${DIM}↑${ga}${R}"
+    ((gz > 0)) && right+=" ${DIM}↓${gz}${R}"
+    right_s=$right
+  fi
+fi
+
+# ── layout: shrink left of line 2, then place right segment ──────────
+for l2 in "${ctx_f}${cache_f}${h5}${d7_f}${sp_f}" \
+  "${ctx_s}${cache_f}${h5}${d7_f}${sp_f}" \
+  "${ctx_s}${cache_s}${h5}${d7_s}${sp_s}"; do
+  width "$l2"; ((W <= avail)) && break
+done
+lw=$W l3=""
+if [[ -n $right ]]; then
+  placed=0
+  for r in "$right" "$right_s"; do
+    width "$r"
+    if ((lw + 2 + W <= avail)); then printf -v pad '%*s' $((avail - lw - W)) ''; l2+="${pad}${r}"; placed=1; break; fi
+  done
+  if ((!placed)); then width "$right_s"; printf -v pad '%*s' $((avail > W ? avail - W : 0)) ''; l3="${pad}${right_s}"; fi
+fi
+
+printf '%s\n%s\n' "$l1" "$l2"
+[[ -n $l3 ]] && printf '%s\n' "$l3"
+exit 0
