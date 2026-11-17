@@ -24,6 +24,11 @@
       grub_timeout: 10
     - role: bruzit.ansible.tmp
 
+- name: Provision NAS mounts
+  hosts: workstations:media
+  roles:
+    - role: bruzit.ansible.nfs_client
+
 - name: Provision developer tooling
   hosts: workstations:wsl
   roles:

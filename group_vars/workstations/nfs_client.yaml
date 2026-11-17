@@ -1,0 +1,9 @@
+---
+nfs_client_mounts:
+  - src: nas0:/volume1/mm
+    path: /mnt/nas0/mm
+    ro: true
+  - src: nas1:/volume2/mb
+    path: /mnt/nas1/mb
+  - src: nas1:/volume2/bruzit
+    path: /mnt/nas1/bruzit

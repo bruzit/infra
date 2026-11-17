@@ -88,6 +88,7 @@ Accounts are defined once in [`group_vars/all/accounts.yaml`](group_vars/all/acc
 | All but `appliances`             | apt, users                                                                                                                             |
 | `workstations`, `wsl`            | SSH key, git (identity, SSH commit signing, clones), claude, direnv, starship, gh, bitwarden_cli, terraform, docker, jq, pwgen, yq, mc |
 | `workstations`, `media`, `cloud` | ssh_server, fail2ban                                                                                                                   |
+| `workstations`, `media`          | grub (10 s menu), tmp (tmpfs `/tmp`), nfs_client: `nas0` `mm` read-only; on `workstations` also `nas1` `mb`, `bruzit` read-write       |
 | `workstations`                   | snap, obsidian, widelands, nerd_font, vscode, vscodium, google_chrome, openttd; unattended_upgrades without reboot                     |
 | `media`, `cloud`                 | unattended_upgrades with automatic reboot                                                                                              |
 | `media`                          | kodi_youtube, kodi_netflix: Kodi with YouTube, Netflix and InputStream Adaptive add-ons, web remote control, Avahi discovery           |
@@ -102,6 +103,7 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <host> playbo
 
 Host notes:
 
+- `workstations`, `media`: NAS shares under `/mnt/<nas>/<share>`, mounted on first access; the NFS exports are set up by hand in DSM, restricted to these hosts.
 - `media`: Kodi web server password from `KODI_WEBSERVER_PASSWORD` in `.env`; `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
 - `wsl`: run `wsl --shutdown` from Windows after the first run; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway. No nftables firewall, a deliberate deviation from default-deny inbound: WSL NAT exposes the host only to Windows, whose firewall applies; the `nftables` role is off on WSL by default.
 
