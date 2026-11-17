@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.36.0](https://github.com/bruzit/infra/compare/v0.35.0...v0.36.0) (2026-11-17)
+
+### Features
+
+* **claude:** add status line script with bats tests ([e33fb36](https://github.com/bruzit/infra/commit/e33fb36dbfbc0d64412daeffeb7bee92b0211e13))
+
 ## [0.35.0](https://github.com/bruzit/infra/compare/v0.34.0...v0.35.0) (2026-11-08)
 
 ### Features
