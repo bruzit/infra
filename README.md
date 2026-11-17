@@ -105,6 +105,42 @@ Host notes:
 - `media`: Kodi web server password from `KODI_WEBSERVER_PASSWORD` in `.env`; `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
 - `wsl`: run `wsl --shutdown` from Windows after the first run; start Docker by hand with `sudo service docker start`; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway.
 
+### Claude Code Status Line
+
+[`claude/statusline`](claude/statusline) is installed as `~/.claude/statusline` (`claude_statusline_src` in [`group_vars/all/claude.yaml`](group_vars/all/claude.yaml)); it needs `jq`; `git` and `timeout` are optional. It prints two rows; Claude Code's mode row stays below them. Percentages are green below 50 %, yellow from 50 %, red from 80 %; `–` means no data.
+
+![Claude Code with the status line: model and directory row, context, cache and rate limit row, Claude Code's mode row below](claude/statusline.png)
+
+| Row 1          | Meaning                                                                      |
+|----------------|------------------------------------------------------------------------------|
+| **Opus 5.5**   | Model                                                                        |
+| &#x26A1;       | Fast mode on                                                                 |
+| ∅ think        | Thinking off                                                                 |
+| · medium       | Effort level                                                                 |
+| `~/Projects/x` | Working directory, original one in a worktree; `…` = truncated from the left |
+| +N             | Added directories                                                            |
+
+| Row 2                      | Meaning                                                                            |
+|----------------------------|------------------------------------------------------------------------------------|
+| ctx ██░░░░░░░░ 21% 208k/1M | Context window used, input tokens / window size                                    |
+| ⚑                          | Over 200k tokens                                                                   |
+| ⚠ /compact                 | Context ≥ 80 % used                                                                |
+| cache ✓ 59m                | Prompt cache warm, minutes left; yellow ≤ 10 min (≤ 2 min for 5m TTL), red < 1 min |
+| cache ✗ 150k               | Prompt cache cold, tokens to re-cache                                              |
+| 42% ⚠ cause                | Cache hit ratio < 80 % with misses, top miss cause                                 |
+| 5h 4% ↻ 13:10              | 5-hour rate limit used, reset time                                                 |
+| 7d 14% ↻ Tue 21:00         | 7-day rate limit used, reset time                                                  |
+| ▲                          | Rate limit used ahead of even pace by more than 5 points                           |
+| $ 30% ↻ …                  | Spend limit used, reset time                                                       |
+
+| Row 2, right   | Meaning                                                                                                     |
+|----------------|-------------------------------------------------------------------------------------------------------------|
+| `main` ✱ ↑1 ↓2 | Git branch (short commit when detached), uncommitted changes, commits ahead, behind                         |
+| ⎇ name         | Worktree                                                                                                    |
+| #12 ✓ approved | Pull request (`!12` = GitLab merge request), clickable; ✓ approved, ● pending, ✗ changes requested, ◌ draft |
+
+When the terminal is narrow, token counts are dropped first, then the 7-day reset time, cache miss cause and spend reset time; the right segment drops the pull request label, then moves to a third row.
+
 ### Cloud
 
 [`terraform/`](terraform) creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
