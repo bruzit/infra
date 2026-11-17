@@ -3,6 +3,9 @@ name: BATS
 
 on:
   pull_request:
+    paths:
+      - claude/**
+      - .github/workflows/bats.yaml
 
 permissions:
   contents: read
