@@ -1,1 +1,4 @@
+---
+# Preferences stay with /config; deliberate exception: the status line (claude/statusline).
 claude_default_agents_view: true
+claude_statusline_src: "{{ playbook_dir }}/claude/statusline"

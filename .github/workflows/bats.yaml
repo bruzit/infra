@@ -1,0 +1,32 @@
+---
+name: BATS
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  bats:
+    name: BATS
+    runs-on: ubuntu-slim
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install BATS
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends bats bats-assert bats-support git jq
+      - name: Run BATS
+        run: bats claude
+
+  required:
+    name: Required (BATS)
+    needs: [bats]
+    if: always()
+    runs-on: ubuntu-slim
+    permissions: {}
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
