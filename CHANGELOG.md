@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.38.0](https://github.com/bruzit/infra/compare/v0.37.0...v0.38.0) (2026-11-17)
+
+### Features
+
+* **nfs_client:** mount nas shares on workstations and media ([87f41d2](https://github.com/bruzit/infra/commit/87f41d2ad11df383bb655e2fd24ad946825237ff))
+
 ## [0.37.0](https://github.com/bruzit/infra/compare/v0.36.0...v0.37.0) (2026-11-17)
 
 ### Features
