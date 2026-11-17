@@ -17,11 +17,12 @@
       users_accounts: "{{ accounts }}"
 
 # Physical Ubuntu hosts; appliances run DSM, wsl and cloud boot without a menu
-- name: Provision bootloader
+- name: Provision bootloader and /tmp
   hosts: workstations:media
   roles:
     - role: bruzit.ansible.grub
       grub_timeout: 10
+    - role: bruzit.ansible.tmp
 
 - name: Provision developer tooling
   hosts: workstations:wsl
