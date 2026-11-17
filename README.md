@@ -91,7 +91,7 @@ Accounts are defined once in [`group_vars/all/accounts.yaml`](group_vars/all/acc
 | `workstations`                   | snap, obsidian, widelands, nerd_font, vscode, vscodium, google_chrome, openttd; unattended_upgrades without reboot                     |
 | `media`, `cloud`                 | unattended_upgrades with automatic reboot                                                                                              |
 | `media`                          | kodi_youtube, kodi_netflix: Kodi with YouTube, Netflix and InputStream Adaptive add-ons, web remote control, Avahi discovery           |
-| `wsl`                            | wsl: no systemd, snapd purged, Windows browser for `gh` and `xdg-open`; no nftables firewall                                           |
+| `wsl`                            | wsl: systemd, snapd purged, Windows browser for `gh` and `xdg-open`; no nftables firewall                                              |
 
 Always limit the run with `-l`; `-K` prompts for the sudo password, without a TTY use a password file:
 
@@ -103,7 +103,7 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <host> playbo
 Host notes:
 
 - `media`: Kodi web server password from `KODI_WEBSERVER_PASSWORD` in `.env`; `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
-- `wsl`: run `wsl --shutdown` from Windows after the first run; start Docker by hand with `sudo service docker start`; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway.
+- `wsl`: run `wsl --shutdown` from Windows after the first run; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway.
 
 ### Claude Code Status Line
 
