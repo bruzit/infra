@@ -31,13 +31,13 @@ Status: Provisioned (whole scope converged by `playbook.yaml` or Terraform), In 
 
 ### Hosts
 
-| Group          | Hosts                             | Connection          |
-|----------------|-----------------------------------|---------------------|
-| `workstations` | `pc0`, `pc2`, `pc4`               | SSH                 |
-| `media`        | `pc3` (lab), `pc1` (household)    | SSH                 |
-| `wsl`          | `wsl-beta`                        | Local               |
-| `cloud`        | `cloud0` (Hetzner, `hcloud.yaml`) | SSH                 |
-| `appliances`   | `nas0`, `nas1`                    | None (Synology DSM) |
+| Group          | Hosts                                        | Connection          |
+|----------------|----------------------------------------------|---------------------|
+| `workstations` | `pc0` (lab), `pc2` (backup), `pc4` (primary) | SSH                 |
+| `media`        | `pc3` (lab), `pc1`                           | SSH                 |
+| `wsl`          | `wsl-beta` (backup)                          | Local               |
+| `cloud`        | `cloud0` (Hetzner, `hcloud.yaml`)            | SSH                 |
+| `appliances`   | `nas0`, `nas1`                               | None (Synology DSM) |
 
 Tier groups set `bruzit_tier`: `test` (`pc0`, `pc3`, `cloud0`), `prod` (the rest); the playbook fails hosts without a valid tier.
 
@@ -62,7 +62,7 @@ Afterwards run it from any controller. SSH hosts are reached by hostname; Ubuntu
 
 ### Controller
 
-Every `workstations` and `wsl` host is a controller: the first local run installs gh (git credential helper) and direnv and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`. Log in to GitHub and register both keys (if already logged in, `gh auth refresh -s admin:ssh_signing_key` first):
+Every `workstations` and `wsl` host is a controller, `pc4` the primary one, `pc2` and `wsl-beta` secondary backups: the first local run installs gh (git credential helper) and direnv and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`. Log in to GitHub and register both keys (if already logged in, `gh auth refresh -s admin:ssh_signing_key` first):
 
 ```bash
 gh auth login -h github.com -p https -w -s admin:public_key,admin:ssh_signing_key
