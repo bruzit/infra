@@ -103,7 +103,7 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <host> playbo
 Host notes:
 
 - `media`: Kodi web server password from `KODI_WEBSERVER_PASSWORD` in `.env`; `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
-- `wsl`: run `wsl --shutdown` from Windows after the first run; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway.
+- `wsl`: run `wsl --shutdown` from Windows after the first run; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway. No nftables firewall, a deliberate deviation from default-deny inbound: WSL NAT exposes the host only to Windows, whose firewall applies; the `nftables` role is off on WSL by default.
 
 ### Claude Code Status Line
 
