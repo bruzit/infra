@@ -1,5 +1,5 @@
 ---
 nfs_client_mounts:
-  - src: nas0:/volume1/mm
+  - src: 192.168.1.5:/volume1/mm
     path: /mnt/nas0/mm
     ro: true
