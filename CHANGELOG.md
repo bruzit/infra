@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.40.0](https://github.com/bruzit/infra/compare/v0.39.0...v0.40.0) (2026-11-18)
+
+### Features
+
+* install node.js 26 on workstations and wsl ([e50861e](https://github.com/bruzit/infra/commit/e50861e2b927f4b70550dead50f8219d76014ad8))
+
 ## [0.39.0](https://github.com/bruzit/infra/compare/v0.38.1...v0.39.0) (2026-11-18)
 
 ### Features
