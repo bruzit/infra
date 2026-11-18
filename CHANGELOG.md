@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.38.1](https://github.com/bruzit/infra/compare/v0.38.0...v0.38.1) (2026-11-18)
+
+### Bug Fixes
+
+* **nfs_client:** mount nas shares by address ([305236b](https://github.com/bruzit/infra/commit/305236b70300b3b82087df9639b7fc1f106ef12a))
+
 ## [0.38.0](https://github.com/bruzit/infra/compare/v0.37.0...v0.38.0) (2026-11-17)
 
 ### Features
