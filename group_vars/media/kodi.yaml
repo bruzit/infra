@@ -1,2 +1,21 @@
 ---
 kodi_webserver_password: "{{ lookup('ansible.builtin.env', 'KODI_WEBSERVER_PASSWORD', default=undef('KODI_WEBSERVER_PASSWORD not set, see .env.tmpl')) }}"
+kodi_sources:
+  - type: video
+    name: Movies
+    path: /mnt/nas0/mm/Movies
+  - type: video
+    name: TV Shows
+    path: /mnt/nas0/mm/TV Shows
+  - type: video
+    name: Music Videos
+    path: /mnt/nas0/mm/Music Videos
+  - type: video
+    name: Videos
+    path: /mnt/nas0/mm/Videos
+  - type: music
+    name: Music
+    path: /mnt/nas0/mm/Music
+  - type: pictures
+    name: Pictures
+    path: /mnt/nas0/mm/Pictures
