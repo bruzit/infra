@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.39.0](https://github.com/bruzit/infra/compare/v0.38.1...v0.39.0) (2026-11-18)
+
+### Features
+
+* **media:** add nas0 mm kodi sources ([13d9d78](https://github.com/bruzit/infra/commit/13d9d78d7e0750db0b136abe68da9029b21328d9))
+
 ## [0.38.1](https://github.com/bruzit/infra/compare/v0.38.0...v0.38.1) (2026-11-18)
 
 ### Bug Fixes
