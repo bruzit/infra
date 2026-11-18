@@ -42,6 +42,8 @@
       gh_users: "{{ accounts }}"
     - role: bruzit.ansible.bitwarden_cli
     - role: bruzit.ansible.terraform
+    - role: bruzit.ansible.nodejs
+      nodejs_major: "26"
     - role: bruzit.ansible.docker
       docker_users: "{{ accounts | map(attribute='name') }}"
     - role: bruzit.ansible.jq
