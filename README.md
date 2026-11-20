@@ -43,7 +43,7 @@ Tier groups set `bruzit_tier`: `test` (`pc0`, `pc3`, `cloud0`), `prod` (the rest
 
 ### Bootstrap
 
-On a fresh system (apt provides ansible-core 2.20 from Ubuntu 26.04; on 24.04 use `pipx install ansible`), clone over HTTPS into `~/Projects`, where the `git` role skips existing clones:
+On a fresh system, install git and Ansible, then clone over HTTPS into `~/Projects`; the `git` role skips existing clones. apt ships ansible-core 2.20 from Ubuntu 26.04; on 24.04, use `pipx install ansible`.
 
 ```bash
 sudo apt install -y git ansible-core
@@ -58,11 +58,11 @@ Add the host to [`inventory.yaml`](inventory.yaml) under `workstations`, `media`
 ansible-playbook -K -c local -l <host> playbook.yaml
 ```
 
-Afterwards run it from any controller. SSH hosts are reached by hostname; Ubuntu 25.10 and newer become via `sudo.ws` automatically.
+After that, run it from any controller. It reaches SSH hosts by hostname; on Ubuntu 25.10 and newer it becomes root via `sudo.ws` automatically.
 
 ### Controller
 
-Every `workstations` and `wsl` host is a controller, `pc4` the primary one, `pc2` and `wsl-beta` secondary backups: the first local run installs gh (git credential helper) and direnv and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`. Log in to GitHub and register both keys (if already logged in, `gh auth refresh -s admin:ssh_signing_key` first):
+Every `workstations` and `wsl` host is a controller, a machine that runs Ansible: `pc4` is the primary one, `pc2` and `wsl-beta` are backups. The first local run installs gh (git credential helper) and direnv, and generates the SSH key `~/.ssh/id_ed25519` and the commit signing key `~/.ssh/id_ed25519_signing`. Log in to GitHub and register both keys; if you're already logged in, run `gh auth refresh -s admin:ssh_signing_key` first:
 
 ```bash
 gh auth login -h github.com -p https -w -s admin:public_key,admin:ssh_signing_key
@@ -70,7 +70,7 @@ gh ssh-key add ~/.ssh/id_ed25519.pub -t <host>
 gh ssh-key add ~/.ssh/id_ed25519_signing.pub --type signing -t <host>
 ```
 
-Copy the `.env*` files and GitHub App PEMs from an existing controller into the matching checkouts under `~/Projects`, then run `direnv allow` in each. From an existing controller, re-run the playbook on the other SSH hosts so their authorized keys include the new key, then verify:
+Copy the `.env*` files and GitHub App PEMs from an existing controller into the matching checkouts under `~/Projects`, then run `direnv allow` in each. From an existing controller, re-run the playbook on the other SSH hosts so they authorize the new key, then verify:
 
 ```bash
 ansible-playbook -K -l <host> playbook.yaml
@@ -81,7 +81,7 @@ ansible -m ping workstations:media
 
 ### Provision Hosts
 
-Accounts are defined once in [`group_vars/all/accounts.yaml`](group_vars/all/accounts.yaml); each account's `repositories` are cloned into `~/Projects`. Roles per group, from [`playbook.yaml`](playbook.yaml):
+Define accounts once in [`group_vars/all/accounts.yaml`](group_vars/all/accounts.yaml); the playbook clones each account's `repositories` into `~/Projects`. Roles per group, from [`playbook.yaml`](playbook.yaml):
 
 | Group                            | Roles                                                                                                                                  |
 |----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
@@ -94,7 +94,7 @@ Accounts are defined once in [`group_vars/all/accounts.yaml`](group_vars/all/acc
 | `media`                          | kodi_youtube, kodi_netflix: Kodi with YouTube, Netflix and InputStream Adaptive add-ons, web remote control, Avahi discovery           |
 | `wsl`                            | wsl: systemd, snapd purged, Windows browser for `gh` and `xdg-open`; no nftables firewall                                              |
 
-Always limit the run with `-l`; `-K` prompts for the sudo password, without a TTY use a password file:
+Always limit the run with `-l`. `-K` prompts for the sudo password; without a TTY, use a password file:
 
 ```bash
 ansible-playbook -K -l <host> playbook.yaml
@@ -103,13 +103,13 @@ ANSIBLE_BECOME_PASSWORD_FILE=~/.ansible_become ansible-playbook -l <host> playbo
 
 Host notes:
 
-- `workstations`, `media`: NAS shares under `/mnt/<nas>/<share>`, mounted on first access; the NFS exports are set up by hand in DSM, restricted to these hosts.
-- `media`: Kodi web server password from `KODI_WEBSERVER_PASSWORD` in `.env`; `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
-- `wsl`: run `wsl --shutdown` from Windows after the first run; `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway. No nftables firewall, a deliberate deviation from default-deny inbound: WSL NAT exposes the host only to Windows, whose firewall applies; the `nftables` role is off on WSL by default.
+- `workstations`, `media`: NAS shares mount under `/mnt/<nas>/<share>` on first access. Set up the NFS exports by hand in DSM, restricted to these hosts.
+- `media`: set the Kodi web server password as `KODI_WEBSERVER_PASSWORD` in `.env`. `pc1` outputs to its `HDMI-A-1` TV with HDMI audio.
+- `wsl`: after the first run, run `wsl --shutdown` from Windows. `ansible.builtin.reboot` refuses local connections, so keep `system_reboot_when_needed` false and reboot by hand after kernel upgrades. `wsl-beta` resolves DNS via the WSL NAT gateway. I deliberately skip the default-deny inbound nftables firewall here: WSL NAT exposes the host only to Windows, whose firewall applies, so the `nftables` role is off on WSL by default.
 
 ### Claude Code Status Line
 
-[`claude/statusline`](claude/statusline) is installed as `~/.claude/statusline` (`claude_statusline_src` in [`group_vars/all/claude.yaml`](group_vars/all/claude.yaml)); it needs `jq`; `git` and `timeout` are optional. It prints two rows; Claude Code's mode row stays below them. Percentages are green below 50 %, yellow from 50 %, red from 80 %; `–` means no data.
+The playbook installs [`claude/statusline`](claude/statusline) as `~/.claude/statusline` (`claude_statusline_src` in [`group_vars/all/claude.yaml`](group_vars/all/claude.yaml)). It needs `jq`; `git` and `timeout` are optional. It prints two rows above Claude Code's mode row. Percentages are green below 50 %, yellow from 50 %, red from 80 %; `–` means no data.
 
 ![Claude Code with the status line: model and directory row, context, cache and rate limit row, Claude Code's mode row below](claude/statusline.png)
 
@@ -141,7 +141,7 @@ Host notes:
 | ⎇ name         | Worktree                                                                                                    |
 | #12 ✓ approved | Pull request (`!12` = GitLab merge request), clickable; ✓ approved, ● pending, ✗ changes requested, ◌ draft |
 
-When the terminal is narrow, token counts are dropped first, then the 7-day reset time, cache miss cause and spend reset time; the right segment drops the pull request label, then moves to a third row.
+On a narrow terminal, it drops token counts first, then the 7-day reset time, cache miss cause and spend reset time; the right segment drops the pull request label, then moves to a third row.
 
 ### Cloud
 
@@ -150,7 +150,7 @@ cloud-init creates user `mb` with those keys and passwordless sudo, and disables
 
 Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.test.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
 
-Bootstrap the workspace once, since the read-only R2 token cannot create it:
+Bootstrap the workspace once; the read-only R2 token can't create it:
 
 ```bash
 TF_MODE=apply direnv exec . terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
@@ -165,23 +165,23 @@ TF_MODE=apply direnv exec . terraform -chdir=terraform apply
 TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
 ```
 
-SSH in by `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
+SSH in: `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
 
-Servers labeled `role=cloud` form the inventory group `cloud`, and their `env` label (the Terraform workspace, i.e. the tier) the tier group and `bruzit_tier`, discovered by the [hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN` and reached by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` is not in `ansible.cfg` since it fails without a token, so pass both inventories. `TF_ENV` picks the token and thus the Hetzner project, while `-l 'cloud:&<env>'` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
+The hcloud inventory plugin discovers the servers ([hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html)) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN`. Servers labeled `role=cloud` form the inventory group `cloud`; their `env` label (the Terraform workspace, i.e. the tier) sets the tier group and `bruzit_tier`. Ansible reaches them by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` isn't in `ansible.cfg` because it fails without a token, so pass both inventories. `TF_ENV` picks the token and so the Hetzner project; `-l 'cloud:&<env>'` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
 
 ```bash
 TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l 'cloud:&test' playbook.yaml
 ```
 
-Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; a recycled address with a changed key needs `ssh-keygen -R <address>`.
+Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; if a recycled address comes with a changed key, run `ssh-keygen -R <address>`.
 
 ## Support
 
-Demo: a reference implementation of BruzIT products in use, best effort; [open a GitHub issue](../../issues).
+[Open a GitHub issue](../../issues). This repository is a demo, a reference implementation of BruzIT products in use, so I answer best effort.
 
 ## Testing
 
-MegaLinter (Ansible, Terraform, YAML, Markdown, GitHub Actions) and Terraform `fmt`, `validate` and `test` with mocked providers run on pull requests. Locally:
+Pull requests run MegaLinter (Ansible, Terraform, YAML, Markdown, GitHub Actions) and Terraform `fmt`, `validate` and `test` with mocked providers. Run the Terraform tests locally:
 
 ```bash
 terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test
@@ -197,11 +197,11 @@ terraform -chdir=terraform init -backend=false && terraform -chdir=terraform tes
 | [Semantic Release](.github/workflows/semantic-release.yaml)         | Push to `main`                   | Version, changelog and GitHub release                                                     |
 | [Terraform](.github/workflows/terraform.yaml)                       | Manual, `apply` or `destroy`     | `Plan` read-only in environment `test-plan`; `Apply` after approval of environment `test` |
 
-The `Terraform` workflow writes the IP-masked plan to the job summary; `Apply` plans again before applying or destroying. Destroy promptly after testing, the server is billed hourly.
+The `Terraform` workflow writes the IP-masked plan to the job summary; `Apply` plans again before applying or destroying. Destroy promptly after testing; the server is billed hourly.
 
 ## Contributing
 
-Open a pull request to `main`. Commits follow the [Conventional Commits 1.0.0 specification](https://www.conventionalcommits.org/en/v1.0.0/), from which semantic-release sets versions and the changelog automatically.
+Open a pull request to `main`. Write commits per the [Conventional Commits 1.0.0 specification](https://www.conventionalcommits.org/en/v1.0.0/); semantic-release sets the version and changelog from them.
 
 ## License and Copyright
 
