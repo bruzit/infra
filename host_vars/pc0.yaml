@@ -1,3 +1,4 @@
 ---
 # Tried on the test host before workstations
 grub_cmdline_linux_default_extra: [preempt=full]
+nftables_mode: enforce
