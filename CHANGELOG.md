@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.41.0](https://github.com/bruzit/infra/compare/v0.40.0...v0.41.0) (2026-11-22)
+
+### Features
+
+* **nftables:** enforce firewall on pc0 ([a7c7ad6](https://github.com/bruzit/infra/commit/a7c7ad6cd866b552c7c1ca664ee2327bca24b458))
+
 ## [0.40.0](https://github.com/bruzit/infra/compare/v0.39.0...v0.40.0) (2026-11-18)
 
 ### Features
