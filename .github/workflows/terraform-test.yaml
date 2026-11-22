@@ -21,11 +21,11 @@ jobs:
       - name: Terraform fmt
         run: terraform -chdir=terraform fmt -check -recursive
       - name: Terraform init
-        run: terraform -chdir=terraform init -backend=false
+        run: terraform -chdir=terraform/hetzner init -backend=false
       - name: Terraform validate
-        run: terraform -chdir=terraform validate
+        run: terraform -chdir=terraform/hetzner validate
       - name: Terraform test
-        run: terraform -chdir=terraform test
+        run: terraform -chdir=terraform/hetzner test
 
   required:
     name: Required (Terraform Test)

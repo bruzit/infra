@@ -145,7 +145,7 @@ On a narrow terminal, it drops token counts first, then the 7-day reset time, ca
 
 ### Cloud
 
-[`terraform/`](terraform) creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
+[`terraform/hetzner/`](terraform/hetzner) creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
 cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. State lives in the R2 bucket `$AWS_BUCKET`, one Terraform workspace per environment. Addresses are private: outputs are sensitive and the workflow masks IP addresses.
 
 Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.test.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
@@ -153,19 +153,19 @@ Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.
 Bootstrap the workspace once; the read-only R2 token can't create it:
 
 ```bash
-TF_MODE=apply direnv exec . terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
 ```
 
 Plan, apply and destroy locally:
 
 ```bash
-terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
-terraform -chdir=terraform plan -lock=false
-TF_MODE=apply direnv exec . terraform -chdir=terraform apply
-TF_MODE=apply direnv exec . terraform -chdir=terraform destroy
+terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
+terraform -chdir=terraform/hetzner plan -lock=false
+TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner apply
+TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner destroy
 ```
 
-SSH in: `ssh mb@"$(terraform -chdir=terraform output -raw ipv4_address)"`.
+SSH in: `ssh mb@"$(terraform -chdir=terraform/hetzner output -raw ipv4_address)"`.
 
 The hcloud inventory plugin discovers the servers ([hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html)) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN`. Servers labeled `role=cloud` form the inventory group `cloud`; their `env` label (the Terraform workspace, i.e. the tier) sets the tier group and `bruzit_tier`. Ansible reaches them by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` isn't in `ansible.cfg` because it fails without a token, so pass both inventories. `TF_ENV` picks the token and so the Hetzner project; `-l 'cloud:&<env>'` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
 
@@ -184,7 +184,7 @@ Then run the workflow with `destroy`. Unknown host keys are accepted on first co
 Pull requests run MegaLinter (Ansible, Terraform, YAML, Markdown, GitHub Actions) and Terraform `fmt`, `validate` and `test` with mocked providers. Run the Terraform tests locally:
 
 ```bash
-terraform -chdir=terraform init -backend=false && terraform -chdir=terraform test
+terraform -chdir=terraform/hetzner init -backend=false && terraform -chdir=terraform/hetzner test
 ```
 
 ## Integration and Deployment

@@ -46,7 +46,7 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Terraform init
-        run: terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+        run: terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
       - name: Terraform plan
         env:
           ACTION: ${{ inputs.action }}
@@ -55,7 +55,7 @@ jobs:
           if [[ "$ACTION" == destroy ]]; then
             args+=(-destroy)
           fi
-          terraform -chdir=terraform "${args[@]}" 2>&1 | sed -E "$MASK_IPS" | tee "$RUNNER_TEMP/plan.txt"
+          terraform -chdir=terraform/hetzner "${args[@]}" 2>&1 | sed -E "$MASK_IPS" | tee "$RUNNER_TEMP/plan.txt"
           {
             echo "## Terraform plan ($TF_WORKSPACE, $ACTION)"
             grep -m1 -E '^(Plan:|No changes\.)' "$RUNNER_TEMP/plan.txt" || true
@@ -88,8 +88,8 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Terraform init
-        run: terraform -chdir=terraform init -backend-config="bucket=$AWS_BUCKET"
+        run: terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
       - name: Terraform ${{ inputs.action }}
         env:
           ACTION: ${{ inputs.action }}
-        run: terraform -chdir=terraform "$ACTION" -auto-approve -no-color 2>&1 | sed -E "$MASK_IPS"
+        run: terraform -chdir=terraform/hetzner "$ACTION" -auto-approve -no-color 2>&1 | sed -E "$MASK_IPS"
