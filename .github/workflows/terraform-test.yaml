@@ -26,6 +26,10 @@ jobs:
         run: terraform -chdir=terraform/hetzner validate
       - name: Terraform test
         run: terraform -chdir=terraform/hetzner test
+      - name: Terraform init Cloudflare
+        run: terraform -chdir=terraform/cloudflare init -backend=false
+      - name: Terraform test Cloudflare
+        run: terraform -chdir=terraform/cloudflare test
 
   required:
     name: Required (Terraform Test)
