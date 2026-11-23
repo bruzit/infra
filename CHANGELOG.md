@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.42.0](https://github.com/bruzit/infra/compare/v0.41.0...v0.42.0) (2026-11-23)
+
+### Features
+
+* **terraform:** add cloudflare root for state buckets and tokens ([67a600d](https://github.com/bruzit/infra/commit/67a600db9ef0df8b0df285114a067d8199026468))
+
 ## [0.41.0](https://github.com/bruzit/infra/compare/v0.40.0...v0.41.0) (2026-11-22)
 
 ### Features
