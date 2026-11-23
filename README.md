@@ -175,9 +175,9 @@ TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l '
 
 Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; if a recycled address comes with a changed key, run `ssh-keygen -R <address>`.
 
-[`terraform/cloudflare/`](terraform/cloudflare) manages the Cloudflare account: the R2 state buckets `bruzit-terraform-<technology>-<tier>` (jurisdiction `eu`, its own included), a bucket-scoped R2 token per GitHub environment (`R` reads, `RW` writes), its own provider tokens and the Pages deploy tokens. It writes the tokens to the GitHub environment secrets through the GitHub App `bruzit-secrets`; its own tokens stay local, in the sensitive outputs `r2` and `api_tokens`. Permission groups are looked up by name from the Cloudflare API. It runs locally with `TF_ENV=cloudflare` (`.env.cloudflare.<mode>` from `.env.cloudflare.<mode>.tmpl`).
+[`terraform/cloudflare/`](terraform/cloudflare) manages the Cloudflare account: the R2 state buckets `bruzit-terraform-<technology>-<tier>` (jurisdiction `eu`, its own included), a bucket-scoped R2 token per GitHub environment (`R` reads, `RW` writes), its own read-only provider token and the Pages deploy tokens. It writes the tokens to the GitHub environment secrets through the GitHub App `bruzit-secrets`; its own tokens stay local, in the sensitive outputs `r2` and `api_tokens`. Permission groups are looked up by name from the Cloudflare API. It runs locally with `TF_ENV=cloudflare` (`.env.cloudflare.<mode>` from `.env.cloudflare.<mode>.tmpl`).
 
-Bootstrap once with a temporary account token (Account API Tokens Edit, Workers R2 Storage Edit, Cloudflare Pages Edit, Account Settings Read; expiry one day) as `CLOUDFLARE_API_TOKEN`, on local state since the state bucket doesn't exist yet:
+Cloudflare doesn't let a token create a token that manages tokens, so the apply token is made by hand: account token `BruzIT Cloudflare API Prod RW` (Account API Tokens Edit, Workers R2 Storage Edit, Cloudflare Pages Edit, Account Settings Read; expiry at most one year). Bootstrap once with it as `CLOUDFLARE_API_TOKEN`, on local state since the state bucket doesn't exist yet:
 
 ```bash
 printf 'terraform {\n  backend "local" {}\n}\n' > terraform/cloudflare/backend_override.tf
@@ -186,7 +186,7 @@ TF_ENV=cloudflare TF_MODE=apply direnv exec . terraform -chdir=terraform/cloudfl
 terraform -chdir=terraform/cloudflare output -json
 ```
 
-Fill `.env.cloudflare.<mode>` from the outputs, then move the state into its bucket and delete the temporary token:
+Fill `.env.cloudflare.<mode>` from the outputs, then move the state into its bucket:
 
 ```bash
 rm terraform/cloudflare/backend_override.tf
