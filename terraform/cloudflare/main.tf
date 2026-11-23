@@ -15,10 +15,9 @@ locals {
   }
 
   api_tokens = {
-    "Cloudflare API Prod R"  = { permissions = ["Workers R2 Storage Read", "Pages Read", "Account API Tokens Read", "Account Settings Read"], repository = null, environment = null }
-    "Cloudflare API Prod RW" = { permissions = ["Workers R2 Storage Write", "Pages Write", "Account API Tokens Write", "Account Settings Read"], repository = null, environment = null }
-    "Pages Deploy Prod"      = { permissions = ["Pages Write"], repository = "martin.bruzina.cz", environment = "prod" }
-    "Pages Deploy Test"      = { permissions = ["Pages Write"], repository = "martin.bruzina.cz", environment = "test" }
+    "Cloudflare API Prod R" = { permissions = ["Workers R2 Storage Read", "Pages Read", "Account API Tokens Read", "Account Settings Read"], repository = null, environment = null }
+    "Pages Deploy Prod"     = { permissions = ["Pages Write"], repository = "martin.bruzina.cz", environment = "prod" }
+    "Pages Deploy Test"     = { permissions = ["Pages Write"], repository = "martin.bruzina.cz", environment = "test" }
   }
 
   r2_permission = { false = "Workers R2 Storage Bucket Item Read", true = "Workers R2 Storage Bucket Item Write" }
