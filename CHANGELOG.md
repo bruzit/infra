@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.42.1](https://github.com/bruzit/infra/compare/v0.42.0...v0.42.1) (2026-11-23)
+
+### Bug Fixes
+
+* **terraform:** make cloudflare apply token by hand ([209b1c6](https://github.com/bruzit/infra/commit/209b1c6729b9133721b4ce832692d834631e7218))
+
 ## [0.42.0](https://github.com/bruzit/infra/compare/v0.41.0...v0.42.0) (2026-11-23)
 
 ### Features
