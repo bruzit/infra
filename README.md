@@ -175,6 +175,31 @@ TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l '
 
 Then run the workflow with `destroy`. Unknown host keys are accepted on first contact; if a recycled address comes with a changed key, run `ssh-keygen -R <address>`.
 
+[`terraform/cloudflare/`](terraform/cloudflare) manages the Cloudflare account: the R2 state buckets `bruzit-terraform-<technology>-<tier>` (jurisdiction `eu`, its own included), a bucket-scoped R2 token per GitHub environment (`R` reads, `RW` writes), its own provider tokens and the Pages deploy tokens. It writes the tokens to the GitHub environment secrets through the GitHub App `bruzit-secrets`; its own tokens stay local, in the sensitive outputs `r2` and `api_tokens`. Permission groups are looked up by name from the Cloudflare API. It runs locally with `TF_ENV=cloudflare` (`.env.cloudflare.<mode>` from `.env.cloudflare.<mode>.tmpl`).
+
+Bootstrap once with a temporary account token (Account API Tokens Edit, Workers R2 Storage Edit, Cloudflare Pages Edit, Account Settings Read; expiry one day) as `CLOUDFLARE_API_TOKEN`, on local state since the state bucket doesn't exist yet:
+
+```bash
+printf 'terraform {\n  backend "local" {}\n}\n' > terraform/cloudflare/backend_override.tf
+TF_ENV=cloudflare TF_MODE=apply direnv exec . terraform -chdir=terraform/cloudflare init
+TF_ENV=cloudflare TF_MODE=apply direnv exec . terraform -chdir=terraform/cloudflare apply
+terraform -chdir=terraform/cloudflare output -json
+```
+
+Fill `.env.cloudflare.<mode>` from the outputs, then move the state into its bucket and delete the temporary token:
+
+```bash
+rm terraform/cloudflare/backend_override.tf
+TF_ENV=cloudflare TF_MODE=apply direnv exec . terraform -chdir=terraform/cloudflare init -migrate-state -backend-config="bucket=$AWS_BUCKET"
+```
+
+Plan and apply:
+
+```bash
+TF_ENV=cloudflare direnv exec . terraform -chdir=terraform/cloudflare plan -lock=false
+TF_ENV=cloudflare TF_MODE=apply direnv exec . terraform -chdir=terraform/cloudflare apply
+```
+
 ## Support
 
 [Open a GitHub issue](../../issues). This repository is a demo, a reference implementation of BruzIT products in use, so I answer best effort.
@@ -185,6 +210,7 @@ Pull requests run MegaLinter (Ansible, Terraform, YAML, Markdown, GitHub Actions
 
 ```bash
 terraform -chdir=terraform/hetzner init -backend=false && terraform -chdir=terraform/hetzner test
+terraform -chdir=terraform/cloudflare init -backend=false && terraform -chdir=terraform/cloudflare test
 ```
 
 ## Integration and Deployment
