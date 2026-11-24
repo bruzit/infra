@@ -3,7 +3,6 @@
 !*.tmpl
 *.pem
 .terraform
-.terraform.lock.hcl
 *_override.tf
 *.tfstate*
 megalinter-reports/

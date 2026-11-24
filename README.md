@@ -145,29 +145,29 @@ On a narrow terminal, it drops token counts first, then the 7-day reset time, ca
 
 ### Cloud
 
-[`terraform/hetzner/`](terraform/hetzner) creates the `test` environment in the Hetzner Cloud project "BruzIT Test": server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
-cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. State lives in the R2 bucket `$AWS_BUCKET`, one Terraform workspace per environment. Addresses are private: outputs are sensitive and the workflow masks IP addresses.
+[`terraform/hetzner/`](terraform/hetzner) manages one Terraform workspace per tier, each in its own Hetzner Cloud project ("BruzIT Test", "BruzIT Prod"), with the tier's resources in `<tier>.tfvars`. `test` has server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
+cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. `prod` has none yet. State lives in the R2 bucket `bruzit-terraform-hetzner-<tier>` (`$AWS_BUCKET`). Addresses are private: outputs are sensitive and the workflow masks IP addresses.
 
-Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.test.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
+Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.<env>.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
 
-Bootstrap the workspace once; the read-only R2 token can't create it:
+Bootstrap each tier's workspace once; the read-only R2 token can't create it:
 
 ```bash
-TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
+TF_ENV=prod TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
 ```
 
 Plan, apply and destroy locally:
 
 ```bash
 terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
-terraform -chdir=terraform/hetzner plan -lock=false
-TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner apply
-TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner destroy
+terraform -chdir=terraform/hetzner plan -lock=false -var-file="$TF_WORKSPACE.tfvars"
+TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner apply -var-file="$TF_WORKSPACE.tfvars"
+TF_MODE=apply direnv exec . terraform -chdir=terraform/hetzner destroy -var-file="$TF_WORKSPACE.tfvars"
 ```
 
-SSH in: `ssh mb@"$(terraform -chdir=terraform/hetzner output -raw ipv4_address)"`.
+SSH in: `ssh mb@"$(terraform -chdir=terraform/hetzner output -json ipv4_address | jq -r .cloud0)"`.
 
-The hcloud inventory plugin discovers the servers ([hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html)) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN`. Servers labeled `role=cloud` form the inventory group `cloud`; their `env` label (the Terraform workspace, i.e. the tier) sets the tier group and `bruzit_tier`. Ansible reaches them by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` isn't in `ansible.cfg` because it fails without a token, so pass both inventories. `TF_ENV` picks the token and so the Hetzner project; `-l 'cloud:&<env>'` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with `apply` and approve it, then:
+The hcloud inventory plugin discovers the servers ([hetzner.hcloud: hcloud inventory plugin documentation](https://docs.ansible.com/ansible/latest/collections/hetzner/hcloud/hcloud_inventory.html)) via [`hcloud.yaml`](hcloud.yaml) with `HCLOUD_TOKEN`. Servers labeled `role=cloud` form the inventory group `cloud`; their `env` label (the Terraform workspace, i.e. the tier) sets the tier group and `bruzit_tier`. Ansible reaches them by public IPv4 as `mb` (passwordless sudo, no `-K`). `hcloud.yaml` isn't in `ansible.cfg` because it fails without a token, so pass both inventories. `TF_ENV` picks the token and so the Hetzner project; `-l 'cloud:&<env>'` guards against a mismatched `TF_ENV`, which then selects no hosts. Converge the test environment: run the `Terraform` workflow with tier `test` and `apply` and approve it, then:
 
 ```bash
 TF_ENV=test direnv exec . ansible-playbook -i inventory.yaml -i hcloud.yaml -l 'cloud:&test' playbook.yaml
@@ -215,13 +215,13 @@ terraform -chdir=terraform/cloudflare init -backend=false && terraform -chdir=te
 
 ## Integration and Deployment
 
-| Workflow                                                            | Trigger                          | Purpose                                                                                   |
-|---------------------------------------------------------------------|----------------------------------|-------------------------------------------------------------------------------------------|
-| [MegaLinter](.github/workflows/megalinter.yaml)                     | Pull request                     | Lint changed files; required check `Required (MegaLinter)`                                |
-| [Terraform Test](.github/workflows/terraform-test.yaml)             | Pull request                     | Terraform `fmt`, `validate`, `test`; required check `Required (Terraform Test)`           |
-| [MegaLinter Scheduled](.github/workflows/megalinter-scheduled.yaml) | Weekly, Monday 06:00 UTC; manual | Lint the whole codebase                                                                   |
-| [Semantic Release](.github/workflows/semantic-release.yaml)         | Push to `main`                   | Version, changelog and GitHub release                                                     |
-| [Terraform](.github/workflows/terraform.yaml)                       | Manual, `apply` or `destroy`     | `Plan` read-only in environment `test-plan`; `Apply` after approval of environment `test` |
+| Workflow                                                            | Trigger                              | Purpose                                                                                                                                                                          |
+|---------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [MegaLinter](.github/workflows/megalinter.yaml)                     | Pull request                         | Lint changed files; required check `Required (MegaLinter)`                                                                                                                       |
+| [Terraform Test](.github/workflows/terraform-test.yaml)             | Pull request                         | Terraform `fmt`, `validate`, `test`; required check `Required (Terraform Test)`                                                                                                  |
+| [MegaLinter Scheduled](.github/workflows/megalinter-scheduled.yaml) | Weekly, Monday 06:00 UTC; manual     | Lint the whole codebase                                                                                                                                                          |
+| [Semantic Release](.github/workflows/semantic-release.yaml)         | Push to `main`                       | Version, changelog and GitHub release                                                                                                                                            |
+| [Terraform](.github/workflows/terraform.yaml)                       | Pull request, push to `main`, manual | `Plan` read-only in `<tier>-plan` (pull requests: `test` and `prod`); `Apply` after approval of `<tier>` (push: `prod`; manual: tier, `apply` or `destroy`, destroy only `test`) |
 
 The `Terraform` workflow writes the IP-masked plan to the job summary; `Apply` plans again before applying or destroying. Destroy promptly after testing; the server is billed hourly.
 
