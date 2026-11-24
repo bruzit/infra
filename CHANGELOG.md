@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.42.2](https://github.com/bruzit/infra/compare/v0.42.1...v0.42.2) (2026-11-24)
+
+### Bug Fixes
+
+* ignore local terraform state files ([e1addd5](https://github.com/bruzit/infra/commit/e1addd588e3a6fdc89b5ae58c24218a2ee34685b))
+
 ## [0.42.1](https://github.com/bruzit/infra/compare/v0.42.0...v0.42.1) (2026-11-23)
 
 ### Bug Fixes
