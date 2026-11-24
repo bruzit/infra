@@ -15,14 +15,16 @@ locals {
 }
 
 resource "hcloud_ssh_key" "github" {
-  for_each = toset(local.ssh_keys)
+  for_each = length(var.servers) > 0 ? toset(local.ssh_keys) : toset([])
 
   name       = "github-${substr(sha256(each.key), 0, 8)}"
   public_key = each.key
 }
 
-resource "hcloud_firewall" "cloud0" {
-  name = "cloud0"
+resource "hcloud_firewall" "cloud" {
+  for_each = var.servers
+
+  name = each.key
 
   rule {
     direction  = "in"
@@ -38,13 +40,15 @@ resource "hcloud_firewall" "cloud0" {
   }
 }
 
-resource "hcloud_server" "cloud0" {
-  name         = "cloud0"
-  server_type  = "cx23"
-  location     = "hel1"
-  image        = "ubuntu-26.04"
+resource "hcloud_server" "cloud" {
+  for_each = var.servers
+
+  name         = each.key
+  server_type  = each.value.server_type
+  location     = each.value.location
+  image        = each.value.image
   ssh_keys     = [for key in hcloud_ssh_key.github : key.id]
-  firewall_ids = [hcloud_firewall.cloud0.id]
+  firewall_ids = [hcloud_firewall.cloud[each.key].id]
   labels       = { role = "cloud", env = terraform.workspace }
 
   user_data = "#cloud-config\n${yamlencode({
@@ -56,4 +60,14 @@ resource "hcloud_server" "cloud0" {
       ssh_authorized_keys = local.ssh_keys
     }]
   })}"
+}
+
+moved {
+  from = hcloud_firewall.cloud0
+  to   = hcloud_firewall.cloud["cloud0"]
+}
+
+moved {
+  from = hcloud_server.cloud0
+  to   = hcloud_server.cloud["cloud0"]
 }

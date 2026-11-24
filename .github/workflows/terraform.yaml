@@ -2,10 +2,26 @@
 name: Terraform
 
 on:
+  pull_request:
+    paths:
+      - terraform/hetzner/**
+      - .github/workflows/terraform.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - terraform/hetzner/**
+      - .github/workflows/terraform.yaml
   workflow_dispatch:
     inputs:
+      tier:
+        description: Tier, the Terraform workspace.
+        type: choice
+        options:
+          - test
+          - prod
       action:
-        description: Terraform action.
+        description: Terraform action; destroy only on test.
         type: choice
         options:
           - apply
@@ -19,7 +35,6 @@ defaults:
     shell: bash
 
 env:
-  TF_WORKSPACE: test
   TF_IN_AUTOMATION: true
   TF_INPUT: false
   # Addresses are private
@@ -27,16 +42,28 @@ env:
 
 jobs:
   plan:
-    name: Plan
-    environment: test-plan
+    name: Plan (${{ matrix.tier }})
+    strategy:
+      fail-fast: false
+      matrix:
+        tier: >-
+          ${{ fromJSON(github.event_name == 'pull_request' && '["test","prod"]'
+          || github.event_name == 'push' && '["prod"]'
+          || format('["{0}"]', inputs.tier)) }}
+    environment: ${{ matrix.tier }}-plan
     runs-on: ubuntu-slim
     env:
+      TF_WORKSPACE: ${{ matrix.tier }}
+      ACTION: ${{ inputs.action || 'apply' }}
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_BUCKET: ${{ vars.AWS_TF_BUCKET }}
       AWS_ENDPOINT_URL_S3: ${{ vars.AWS_ENDPOINT_URL_S3 }}
     steps:
+      - name: Refuse prod destroy
+        if: matrix.tier == 'prod' && inputs.action == 'destroy'
+        run: exit 1
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -48,10 +75,8 @@ jobs:
       - name: Terraform init
         run: terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
       - name: Terraform plan
-        env:
-          ACTION: ${{ inputs.action }}
         run: |
-          args=(plan -lock=false -no-color)
+          args=(plan -lock=false -no-color -var-file="$TF_WORKSPACE.tfvars")
           if [[ "$ACTION" == destroy ]]; then
             args+=(-destroy)
           fi
@@ -67,12 +92,15 @@ jobs:
   apply:
     name: Apply
     needs: plan
-    environment: test
+    if: github.event_name != 'pull_request'
+    environment: ${{ github.event_name == 'push' && 'prod' || inputs.tier }}
     runs-on: ubuntu-slim
     concurrency:
-      group: ${{ github.workflow }}-test
+      group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'prod' || inputs.tier }}
       cancel-in-progress: false
     env:
+      TF_WORKSPACE: ${{ github.event_name == 'push' && 'prod' || inputs.tier }}
+      ACTION: ${{ inputs.action || 'apply' }}
       HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -89,7 +117,5 @@ jobs:
           terraform_wrapper: false
       - name: Terraform init
         run: terraform -chdir=terraform/hetzner init -backend-config="bucket=$AWS_BUCKET"
-      - name: Terraform ${{ inputs.action }}
-        env:
-          ACTION: ${{ inputs.action }}
-        run: terraform -chdir=terraform/hetzner "$ACTION" -auto-approve -no-color 2>&1 | sed -E "$MASK_IPS"
+      - name: Terraform ${{ inputs.action || 'apply' }}
+        run: terraform -chdir=terraform/hetzner "$ACTION" -auto-approve -no-color -var-file="$TF_WORKSPACE.tfvars" 2>&1 | sed -E "$MASK_IPS"

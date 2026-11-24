@@ -6,6 +6,16 @@ mock_provider "hcloud" {
   }
 }
 
+variables {
+  servers = {
+    cloud0 = {
+      server_type = "cx23"
+      location    = "hel1"
+      image       = "ubuntu-26.04"
+    }
+  }
+}
+
 mock_provider "http" {
   mock_data "http" {
     defaults = {
@@ -17,22 +27,22 @@ mock_provider "http" {
 
 run "server" {
   assert {
-    condition     = hcloud_server.cloud0.firewall_ids == toset([1])
+    condition     = hcloud_server.cloud["cloud0"].firewall_ids == toset([1])
     error_message = "Server must have the firewall attached."
   }
 
   assert {
-    condition     = length(hcloud_ssh_key.github) == 2 && length(hcloud_server.cloud0.ssh_keys) == 2
+    condition     = length(hcloud_ssh_key.github) == 2 && length(hcloud_server.cloud["cloud0"].ssh_keys) == 2
     error_message = "Server must have every GitHub key."
   }
 
   assert {
-    condition     = yamldecode(trimprefix(hcloud_server.cloud0.user_data, "#cloud-config\n")).users[0].ssh_authorized_keys == ["ssh-ed25519 AAAAone", "ssh-ed25519 AAAAtwo"]
+    condition     = yamldecode(trimprefix(hcloud_server.cloud["cloud0"].user_data, "#cloud-config\n")).users[0].ssh_authorized_keys == ["ssh-ed25519 AAAAone", "ssh-ed25519 AAAAtwo"]
     error_message = "User mb must have every GitHub key."
   }
 
   assert {
-    condition     = hcloud_server.cloud0.labels == tomap({ role = "cloud", env = terraform.workspace })
+    condition     = hcloud_server.cloud["cloud0"].labels == tomap({ role = "cloud", env = terraform.workspace })
     error_message = "Server must be labeled with role cloud and its workspace for the hcloud inventory groups."
   }
 }
@@ -41,7 +51,7 @@ run "firewall" {
   command = plan
 
   assert {
-    condition     = toset([for rule in hcloud_firewall.cloud0.rule : "${rule.direction}/${rule.protocol}/${coalesce(rule.port, "-")}"]) == toset(["in/tcp/22", "in/icmp/-"])
+    condition     = toset([for rule in hcloud_firewall.cloud["cloud0"].rule : "${rule.direction}/${rule.protocol}/${coalesce(rule.port, "-")}"]) == toset(["in/tcp/22", "in/icmp/-"])
     error_message = "Firewall must allow only 22/tcp and ICMP inbound."
   }
 }
@@ -58,4 +68,17 @@ run "no_keys" {
   }
 
   expect_failures = [data.http.github_keys]
+}
+
+run "prod" {
+  command = plan
+
+  variables {
+    servers = {}
+  }
+
+  assert {
+    condition     = length(hcloud_server.cloud) == 0 && length(hcloud_firewall.cloud) == 0 && length(hcloud_ssh_key.github) == 0
+    error_message = "prod has no servers, so no firewalls or SSH keys."
+  }
 }
