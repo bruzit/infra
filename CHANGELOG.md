@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.44.0](https://github.com/bruzit/infra/compare/v0.43.0...v0.44.0) (2026-11-25)
+
+### Features
+
+* **terraform:** add bruzit.com dns zone ([36c31ea](https://github.com/bruzit/infra/commit/36c31ea6d77746ad51ec38b5ca75408283169d89))
+
 ## [0.43.0](https://github.com/bruzit/infra/compare/v0.42.2...v0.43.0) (2026-11-25)
 
 ### Features
