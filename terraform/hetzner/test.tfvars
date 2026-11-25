@@ -5,3 +5,5 @@ servers = {
     image       = "ubuntu-26.04"
   }
 }
+
+zones = {}
