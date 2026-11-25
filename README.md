@@ -146,7 +146,7 @@ On a narrow terminal, it drops token counts first, then the 7-day reset time, ca
 ### Cloud
 
 [`terraform/hetzner/`](terraform/hetzner) manages one Terraform workspace per tier, each in its own Hetzner Cloud project ("BruzIT Test", "BruzIT Prod"), with the tier's resources in `<tier>.tfvars`. `test` has server `cloud0` (`cx23`, `hel1`, Ubuntu 26.04), a firewall allowing only SSH (22/tcp, key-only) and ICMP inbound, and an SSH key per key on `github.com/bruzina.keys`.
-cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. `prod` has none yet. State lives in the R2 bucket `bruzit-terraform-hetzner-<tier>` (`$AWS_BUCKET`). Addresses are private: outputs are sensitive and the workflow masks IP addresses.
+cloud-init creates user `mb` with those keys and passwordless sudo, and disables root and password login. `prod` has the DNS zones, record sets keyed `<name> <type>` (`bruzit.com`: null MX, SPF and DMARC rejecting all mail); zones are delete-protected, and the output `nameservers` lists the nameservers to delegate to at the registrar. State lives in the R2 bucket `bruzit-terraform-hetzner-<tier>` (`$AWS_BUCKET`). Addresses are private: outputs are sensitive and the workflow masks IP addresses.
 
 Credentials come from direnv: `.env` (shared, from `.env.tmpl`) and `.env.<env>.<mode>` (from `.env.<env>.<mode>.tmpl`), selected by `TF_ENV` (default `test`) and `TF_MODE` (`plan`, the default, with read-only tokens, or `apply` with read-write tokens).
 

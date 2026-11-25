@@ -14,6 +14,7 @@ variables {
       image       = "ubuntu-26.04"
     }
   }
+  zones = {}
 }
 
 mock_provider "http" {
@@ -75,10 +76,27 @@ run "prod" {
 
   variables {
     servers = {}
+    zones = {
+      "bruzit.com" = {
+        "@ MX"       = ["0 ."]
+        "@ TXT"      = ["\"v=spf1 -all\""]
+        "_dmarc TXT" = ["\"v=DMARC1; p=reject\""]
+      }
+    }
   }
 
   assert {
     condition     = length(hcloud_server.cloud) == 0 && length(hcloud_firewall.cloud) == 0 && length(hcloud_ssh_key.github) == 0
     error_message = "prod has no servers, so no firewalls or SSH keys."
+  }
+
+  assert {
+    condition     = hcloud_zone.zone["bruzit.com"].mode == "primary" && hcloud_zone.zone["bruzit.com"].delete_protection
+    error_message = "Zones are primary and delete-protected."
+  }
+
+  assert {
+    condition     = [for r in hcloud_zone_rrset.rrset["bruzit.com @ MX"].records : r.value] == ["0 ."] && hcloud_zone_rrset.rrset["bruzit.com _dmarc TXT"].name == "_dmarc"
+    error_message = "Record sets are keyed by \"<name> <type>\" with their values."
   }
 }
