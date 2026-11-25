@@ -27,15 +27,3 @@ resource "hcloud_zone_rrset" "rrset" {
   type    = each.value.type
   records = [for value in each.value.records : { value = value }]
 }
-
-import {
-  for_each = { for zone in keys(var.zones) : zone => zone if zone == "bruzina.cz" }
-  to       = hcloud_zone.zone[each.key]
-  id       = each.key
-}
-
-import {
-  for_each = { for key, rrset in local.rrsets : key => rrset if rrset.zone == "bruzina.cz" }
-  to       = hcloud_zone_rrset.rrset[each.key]
-  id       = "${each.value.zone}/${each.value.name}/${each.value.type}"
-}
