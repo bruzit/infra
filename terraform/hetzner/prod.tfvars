@@ -12,6 +12,7 @@ zones = {
     "@ MX"                             = ["1 wes1-mx1.wedos.net.", "1 wes1-mx2.wedos.net.", "10 wes1-mx-backup.wedos.net."]
     "@ TXT"                            = ["\"v=spf1 mx a include:_spf.we.wedos.net -all\""]
     "_dmarc TXT"                       = ["\"v=DMARC1; p=none; rua=mailto:martin@bruzina.cz\""]
+    "martin CNAME"                     = ["martin-bruzina-cz.pages.dev."]
     "ftp CNAME"                        = ["174451.w51.wedos.net."]
     "imap CNAME"                       = ["wes1-imap.wedos.net."]
     "pop3 CNAME"                       = ["wes1-imap.wedos.net."]

@@ -82,6 +82,11 @@ run "pages" {
     condition     = cloudflare_pages_project.martin_bruzina_cz.name == "martin-bruzina-cz" && cloudflare_pages_project.martin_bruzina_cz.production_branch == "main" && cloudflare_pages_project.martin_bruzina_cz.source == null
     error_message = "Pages project martin-bruzina-cz deploys main by direct upload."
   }
+
+  assert {
+    condition     = cloudflare_pages_domain.martin_bruzina_cz.name == "martin.bruzina.cz" && cloudflare_pages_domain.martin_bruzina_cz.project_name == "martin-bruzina-cz"
+    error_message = "martin.bruzina.cz is the custom domain of martin-bruzina-cz."
+  }
 }
 
 run "missing_permission_group" {
