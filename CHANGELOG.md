@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.45.0](https://github.com/bruzit/infra/compare/v0.44.0...v0.45.0) (2026-11-25)
+
+### Features
+
+* **terraform:** import bruzina.cz dns zone ([f135214](https://github.com/bruzit/infra/commit/f1352144b450d77b954a75e3ecc219cbdaea2138))
+
 ## [0.44.0](https://github.com/bruzit/infra/compare/v0.43.0...v0.44.0) (2026-11-25)
 
 ### Features
