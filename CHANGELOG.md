@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.47.0](https://github.com/bruzit/infra/compare/v0.46.0...v0.47.0) (2026-11-25)
+
+### Features
+
+* **terraform:** add martin.bruzina.cz custom domain ([9a46c7c](https://github.com/bruzit/infra/commit/9a46c7cfaf7e1bc9396561c707b95260ef732366))
+
 ## [0.46.0](https://github.com/bruzit/infra/compare/v0.45.0...v0.46.0) (2026-11-25)
 
 ### Features
