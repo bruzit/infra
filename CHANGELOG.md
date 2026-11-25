@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.43.0](https://github.com/bruzit/infra/compare/v0.42.2...v0.43.0) (2026-11-25)
+
+### Features
+
+* **terraform:** add hetzner prod workspace ([61ecfdf](https://github.com/bruzit/infra/commit/61ecfdf735edcb73c3220f6c28b2cd9ec8ee59d2))
+
 ## [0.42.2](https://github.com/bruzit/infra/compare/v0.42.1...v0.42.2) (2026-11-24)
 
 ### Bug Fixes
