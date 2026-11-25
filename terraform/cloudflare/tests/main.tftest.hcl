@@ -75,6 +75,15 @@ run "secrets" {
   }
 }
 
+run "pages" {
+  command = plan
+
+  assert {
+    condition     = cloudflare_pages_project.martin_bruzina_cz.name == "martin-bruzina-cz" && cloudflare_pages_project.martin_bruzina_cz.production_branch == "main" && cloudflare_pages_project.martin_bruzina_cz.source == null
+    error_message = "Pages project martin-bruzina-cz deploys main by direct upload."
+  }
+}
+
 run "missing_permission_group" {
   command = plan
 
