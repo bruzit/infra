@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.46.0](https://github.com/bruzit/infra/compare/v0.45.0...v0.46.0) (2026-11-25)
+
+### Features
+
+* **terraform:** add martin.bruzina.cz pages project ([661f574](https://github.com/bruzit/infra/commit/661f5749babe6718d4f74e23b9ef182ee7484676))
+
 ## [0.45.0](https://github.com/bruzit/infra/compare/v0.44.0...v0.45.0) (2026-11-25)
 
 ### Features
