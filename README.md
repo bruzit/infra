@@ -193,7 +193,7 @@ rm terraform/cloudflare/backend_override.tf
 TF_ENV=cloudflare TF_MODE=apply direnv exec . terraform -chdir=terraform/cloudflare init -migrate-state -backend-config="bucket=$AWS_BUCKET"
 ```
 
-Plan and apply:
+The `Terraform Cloudflare` workflow plans pull requests, pushes to `main` and weekly, the weekly plan failing on drift; it applies pushes to `main` after approval in the `cloudflare-prod` environment. Its logs show only the changed addresses and the `Plan:` line. It refuses to replace or delete its own tokens; apply those changes locally:
 
 ```bash
 TF_ENV=cloudflare direnv exec . terraform -chdir=terraform/cloudflare plan -lock=false
