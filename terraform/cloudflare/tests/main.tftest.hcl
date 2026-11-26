@@ -60,8 +60,8 @@ run "r2_tokens" {
 
 run "secrets" {
   assert {
-    condition     = length(github_actions_environment_secret.r2_access_key_id) == 8 && length(github_actions_environment_secret.r2_secret_access_key) == 8
-    error_message = "Every GitHub environment gets its R2 credentials; the Cloudflare root's own stay local."
+    condition     = length(github_actions_environment_secret.r2_access_key_id) == 10 && length(github_actions_environment_secret.r2_secret_access_key) == 10
+    error_message = "Every GitHub environment gets its R2 credentials, the Cloudflare root's own included."
   }
 
   assert {
@@ -70,8 +70,8 @@ run "secrets" {
   }
 
   assert {
-    condition     = toset([for s in github_actions_environment_secret.cloudflare_api_token : "${s.repository}/${s.environment}"]) == toset(["martin.bruzina.cz/prod", "martin.bruzina.cz/test"])
-    error_message = "Only the Pages deploy tokens go to GitHub."
+    condition     = toset([for s in github_actions_environment_secret.cloudflare_api_token : "${s.repository}/${s.environment}"]) == toset(["infra/cloudflare-prod-plan", "martin.bruzina.cz/prod", "martin.bruzina.cz/test"])
+    error_message = "The Pages deploy tokens and the Cloudflare root's read token go to GitHub."
   }
 }
 
