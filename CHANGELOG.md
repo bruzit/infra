@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.48.0](https://github.com/bruzit/infra/compare/v0.47.0...v0.48.0) (2026-11-26)
+
+### Features
+
+* **terraform:** deliver cloudflare root's own tokens to its environments ([d080544](https://github.com/bruzit/infra/commit/d08054465657df1ca22bed88f180d1e4e64669ba))
+
 ## [0.47.0](https://github.com/bruzit/infra/compare/v0.46.0...v0.47.0) (2026-11-25)
 
 ### Features
