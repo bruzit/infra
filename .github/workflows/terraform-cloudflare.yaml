@@ -1,0 +1,123 @@
+---
+name: Terraform Cloudflare
+
+on:
+  pull_request:
+    paths:
+      - terraform/cloudflare/**
+      - .github/workflows/terraform-cloudflare.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - terraform/cloudflare/**
+      - .github/workflows/terraform-cloudflare.yaml
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TF_IN_AUTOMATION: true
+  TF_INPUT: false
+  # Public repository: log only change addresses and the Plan: line
+  CHANGES: '.resource_changes[]? | select(.change.actions != ["no-op"]) | "\(.change.actions | join(",")) \(.address)"'
+
+jobs:
+  plan:
+    name: Plan
+    environment: cloudflare-prod-plan
+    runs-on: ubuntu-slim
+    env:
+      EVENT: ${{ github.event_name }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_VAR_account_id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      GITHUB_APP_ID: ${{ vars.GH_TF_APP_ID }}
+      GITHUB_APP_INSTALLATION_ID: ${{ vars.GH_TF_APP_INSTALLATION_ID }}
+      GITHUB_APP_PEM_FILE: ${{ secrets.GH_TF_APP_PEM_FILE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_BUCKET: ${{ vars.AWS_TF_BUCKET }}
+      AWS_ENDPOINT_URL_S3: ${{ vars.AWS_ENDPOINT_URL_S3 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - name: Terraform init
+        run: terraform -chdir=terraform/cloudflare init -backend-config="bucket=$AWS_BUCKET"
+      - name: Terraform plan
+        run: |
+          rc=0
+          terraform -chdir=terraform/cloudflare plan -lock=false -no-color -detailed-exitcode -out="$RUNNER_TEMP/tfplan" > "$RUNNER_TEMP/plan.txt" || rc=$?
+          if (( rc == 1 )); then
+            exit 1
+          fi
+          {
+            echo "## Terraform plan"
+            grep -m1 -E '^(Plan:|No changes\.)' "$RUNNER_TEMP/plan.txt" || true
+            echo '```text'
+            terraform -chdir=terraform/cloudflare show -json "$RUNNER_TEMP/tfplan" | jq -r "$CHANGES"
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          if [[ "$EVENT" == schedule ]] && (( rc == 2 )); then
+            echo "::error::Drift: the plan has changes."
+            exit 1
+          fi
+
+  apply:
+    name: Apply
+    needs: plan
+    if: github.event_name == 'push'
+    environment: cloudflare-prod
+    runs-on: ubuntu-slim
+    concurrency:
+      group: ${{ github.workflow }}-apply
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TF_VAR_account_id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      GITHUB_APP_ID: ${{ vars.GH_TF_APP_ID }}
+      GITHUB_APP_INSTALLATION_ID: ${{ vars.GH_TF_APP_INSTALLATION_ID }}
+      GITHUB_APP_PEM_FILE: ${{ secrets.GH_TF_APP_PEM_FILE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_BUCKET: ${{ vars.AWS_TF_BUCKET }}
+      AWS_ENDPOINT_URL_S3: ${{ vars.AWS_ENDPOINT_URL_S3 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - name: Terraform init
+        run: terraform -chdir=terraform/cloudflare init -backend-config="bucket=$AWS_BUCKET"
+      - name: Terraform plan
+        run: |
+          terraform -chdir=terraform/cloudflare plan -no-color -out="$RUNNER_TEMP/tfplan" > "$RUNNER_TEMP/plan.txt"
+          grep -m1 -E '^(Plan:|No changes\.)' "$RUNNER_TEMP/plan.txt" || true
+          terraform -chdir=terraform/cloudflare show -json "$RUNNER_TEMP/tfplan" | jq -r "$CHANGES" | tee "$RUNNER_TEMP/changes.txt"
+      - name: Refuse replacing own tokens
+        env:
+          OWN: '^[a-z,]*delete[a-z,]* cloudflare_account_token\.(r2\["Cloudflare Prod RW?"\]|api\["Cloudflare API Prod R"\])$'
+        run: |
+          if grep -E "$OWN" "$RUNNER_TEMP/changes.txt"; then
+            echo "::error::Replacing or deleting the Cloudflare root's own tokens breaks its runs; apply locally."
+            exit 1
+          fi
+      - name: Terraform apply
+        run: |
+          terraform -chdir=terraform/cloudflare apply -no-color "$RUNNER_TEMP/tfplan" > "$RUNNER_TEMP/apply.txt"
+          grep -m1 '^Apply complete!' "$RUNNER_TEMP/apply.txt"
