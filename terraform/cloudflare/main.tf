@@ -10,12 +10,12 @@ locals {
     "Hetzner Test RW"    = { bucket = "hetzner-test", write = true, repository = "infra", environment = "test" }
     "Hetzner Prod R"     = { bucket = "hetzner-prod", write = false, repository = "infra", environment = "prod-plan" }
     "Hetzner Prod RW"    = { bucket = "hetzner-prod", write = true, repository = "infra", environment = "prod" }
-    "Cloudflare Prod R"  = { bucket = "cloudflare-prod", write = false, repository = null, environment = null }
-    "Cloudflare Prod RW" = { bucket = "cloudflare-prod", write = true, repository = null, environment = null }
+    "Cloudflare Prod R"  = { bucket = "cloudflare-prod", write = false, repository = "infra", environment = "cloudflare-prod-plan" }
+    "Cloudflare Prod RW" = { bucket = "cloudflare-prod", write = true, repository = "infra", environment = "cloudflare-prod" }
   }
 
   api_tokens = {
-    "Cloudflare API Prod R" = { permissions = ["Workers R2 Storage Read", "Pages Read", "Account API Tokens Read", "Account Settings Read"], repository = null, environment = null }
+    "Cloudflare API Prod R" = { permissions = ["Workers R2 Storage Read", "Pages Read", "Account API Tokens Read", "Account Settings Read"], repository = "infra", environment = "cloudflare-prod-plan" }
     "Pages Deploy Prod"     = { permissions = ["Pages Write"], repository = "martin.bruzina.cz", environment = "prod" }
     "Pages Deploy Test"     = { permissions = ["Pages Write"], repository = "martin.bruzina.cz", environment = "test" }
   }
@@ -82,7 +82,7 @@ resource "cloudflare_account_token" "api" {
 }
 
 resource "github_actions_environment_secret" "r2_access_key_id" {
-  for_each = { for k, v in local.r2_tokens : k => v if v.repository != null }
+  for_each = local.r2_tokens
 
   repository  = each.value.repository
   environment = each.value.environment
@@ -91,7 +91,7 @@ resource "github_actions_environment_secret" "r2_access_key_id" {
 }
 
 resource "github_actions_environment_secret" "r2_secret_access_key" {
-  for_each = { for k, v in local.r2_tokens : k => v if v.repository != null }
+  for_each = local.r2_tokens
 
   repository  = each.value.repository
   environment = each.value.environment
@@ -100,7 +100,7 @@ resource "github_actions_environment_secret" "r2_secret_access_key" {
 }
 
 resource "github_actions_environment_secret" "cloudflare_api_token" {
-  for_each = { for k, v in local.api_tokens : k => v if v.repository != null }
+  for_each = local.api_tokens
 
   repository  = each.value.repository
   environment = each.value.environment
